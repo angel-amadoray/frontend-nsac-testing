@@ -1,4 +1,4 @@
-// server.js (ESM)
+// server.js (ESM, Express 5 compatible)
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,11 +9,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Sirve los archivos estáticos generados por Vite
+// 1. Archivos estáticos generados por Vite (JS, CSS, imágenes, fuentes)
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Redirige todas las rutas a index.html para el SPA routing (React Router)
-app.get('*', (req, res) => {
+// 2. Fallback SPA: cualquier ruta que no haya matcheado un archivo
+//    estático recibe index.html para que React Router maneje el routing.
+//    Usamos app.use() (no app.get('*')) porque Express 5 cambió la
+//    sintaxis de wildcards y este patrón funciona en ambas versiones.
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
