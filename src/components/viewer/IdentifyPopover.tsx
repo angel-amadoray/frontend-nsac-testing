@@ -1,26 +1,27 @@
-import { Loader2, Sparkles, Star, X, AlertTriangle } from 'lucide-react'
-import { useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
-import type { IdentifyResponse, KnownObject } from '@/lib/types'
-import { cn } from '@/lib/utils'
+import { Loader2, Sparkles, Star, X, AlertTriangle, Rotate3D } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import type { IdentifyResponse, KnownObject } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export interface PopoverPosition {
-  screenX: number
-  screenY: number
-  pixelX?: number
-  pixelY?: number
-  markerObject?: KnownObject
+  screenX: number;
+  screenY: number;
+  pixelX?: number;
+  pixelY?: number;
+  markerObject?: KnownObject;
 }
 
 interface IdentifyPopoverProps {
-  position: PopoverPosition | null
-  isLoading: boolean
-  data?: IdentifyResponse
-  error?: Error | null
-  onClose: () => void
+  position: PopoverPosition | null;
+  isLoading: boolean;
+  data?: IdentifyResponse;
+  error?: Error | null;
+  onClose: () => void;
+  onVisualize: (pixelX: number, pixelY: number) => void;
 }
 
-const OFFSET = 16
+const OFFSET = 16;
 
 export function IdentifyPopover({
   position,
@@ -28,37 +29,41 @@ export function IdentifyPopover({
   data,
   error,
   onClose,
+  onVisualize
 }: IdentifyPopoverProps) {
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null);
 
   // Cerrar al hacer click fuera o tecla Escape
   useEffect(() => {
-    if (!position) return
+    if (!position) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
+      if (e.key === "Escape") onClose();
+    };
     const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
-    }
-    document.addEventListener('keydown', handleKey)
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener("keydown", handleKey);
     // setTimeout para no capturar el click que abrió el popover
-    const t = setTimeout(() => document.addEventListener('mousedown', handleClick), 0)
+    const t = setTimeout(
+      () => document.addEventListener("mousedown", handleClick),
+      0,
+    );
     return () => {
-      document.removeEventListener('keydown', handleKey)
-      document.removeEventListener('mousedown', handleClick)
-      clearTimeout(t)
-    }
-  }, [position, onClose])
+      document.removeEventListener("keydown", handleKey);
+      document.removeEventListener("mousedown", handleClick);
+      clearTimeout(t);
+    };
+  }, [position, onClose]);
 
-  if (!position) return null
+  if (!position) return null;
 
   // Clampear el popover dentro del viewport
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-  const width = 320
-  const approxHeight = 180
-  const left = Math.min(position.screenX + OFFSET, vw - width - 8)
-  const top = Math.min(position.screenY + OFFSET, vh - approxHeight - 8)
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const width = 320;
+  const approxHeight = 180;
+  const left = Math.min(position.screenX + OFFSET, vw - width - 8);
+  const top = Math.min(position.screenY + OFFSET, vh - approxHeight - 8);
 
   return createPortal(
     <div
@@ -75,14 +80,18 @@ export function IdentifyPopover({
       </button>
 
       {/* Marcador directo */}
-      {position.markerObject && <MarkerContent object={position.markerObject} />}
+      {position.markerObject && (
+        <MarkerContent object={position.markerObject} />
+      )}
 
       {/* Loading identify */}
       {!position.markerObject && isLoading && (
         <div className="flex items-center gap-3">
           <Loader2 className="h-5 w-5 animate-spin text-accent-cyan" />
           <div>
-            <p className="font-display text-sm font-medium">Consultando JPL SBDB…</p>
+            <p className="font-display text-sm font-medium">
+              Consultando JPL SBDB…
+            </p>
             <p className="mt-0.5 font-mono text-xs text-text-secondary">
               Pixel ({position.pixelX}, {position.pixelY})
             </p>
@@ -95,8 +104,12 @@ export function IdentifyPopover({
         <div className="flex gap-3">
           <AlertTriangle className="h-5 w-5 shrink-0 text-danger" />
           <div>
-            <p className="font-display text-sm font-medium">Error al consultar JPL</p>
-            <p className="mt-1 font-mono text-xs text-text-secondary">{error.message}</p>
+            <p className="font-display text-sm font-medium">
+              Error al consultar JPL
+            </p>
+            <p className="mt-1 font-mono text-xs text-text-secondary">
+              {error.message}
+            </p>
           </div>
         </div>
       )}
@@ -105,9 +118,28 @@ export function IdentifyPopover({
       {!position.markerObject && data && !isLoading && (
         <IdentifyContent data={data} position={position} />
       )}
+
+      {/* Botón Ver en 3D */}
+      {((position.markerObject && position.pixelX == null) || data) && (
+        <button
+          onClick={() => {
+            const px = position.pixelX ?? null;
+            const py = position.pixelY ?? null;
+            if (px != null && py != null) {
+              onVisualize(px, py);
+              onClose();
+            }
+          }}
+          disabled={position.markerObject && position.pixelX == null}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-accent-purple/40 bg-accent-purple/10 px-3 py-2 font-mono text-xs text-accent-purple transition-colors hover:bg-accent-purple/20 disabled:opacity-40"
+        >
+          <Rotate3D className="h-3 w-3" />
+          Visualizar en 3D
+        </button>
+      )}
     </div>,
     document.body,
-  )
+  );
 }
 
 function MarkerContent({ object }: { object: KnownObject }) {
@@ -115,32 +147,47 @@ function MarkerContent({ object }: { object: KnownObject }) {
     <div>
       <div className="mb-2 flex items-center gap-2 text-accent-cyan">
         <Star className="h-4 w-4 fill-current" />
-        <span className="font-mono text-xs uppercase tracking-wider">Asteroide conocido</span>
+        <span className="font-mono text-xs uppercase tracking-wider">
+          Asteroide conocido
+        </span>
       </div>
-      <p className="font-display text-base font-semibold leading-tight">{object.name}</p>
+      <p className="font-display text-base font-semibold leading-tight">
+        {object.name}
+      </p>
       <div className="mt-2 space-y-0.5 font-mono text-xs text-text-secondary">
         {object.vmag && <p>V = {object.vmag} mag</p>}
         {object.ra && <p>RA = {object.ra}</p>}
         {object.dec && <p>Dec = {object.dec}</p>}
-        {object.total_offset_arcsec && <p>Offset = {object.total_offset_arcsec}″</p>}
+        {object.total_offset_arcsec && (
+          <p>Offset = {object.total_offset_arcsec}″</p>
+        )}
       </div>
     </div>
-  )
+  );
 }
 
-function IdentifyContent({ data, position }: { data: IdentifyResponse; position: PopoverPosition }) {
+function IdentifyContent({
+  data,
+  position,
+}: {
+  data: IdentifyResponse;
+  position: PopoverPosition;
+}) {
   if (data.is_candidate) {
     return (
       <div>
         <div className="mb-2 flex items-center gap-2 text-accent-green">
           <Sparkles className="h-4 w-4" />
-          <span className="font-mono text-xs uppercase tracking-wider">Candidato</span>
+          <span className="font-mono text-xs uppercase tracking-wider">
+            Candidato
+          </span>
         </div>
         <p className="font-display text-base font-semibold leading-tight">
           Posible nuevo descubrimiento
         </p>
         <p className="mt-1.5 text-sm text-text-secondary">
-          No hay asteroides catalogados a menos de {data.tolerance_arcsec}″ de esta posición.
+          No hay asteroides catalogados a menos de {data.tolerance_arcsec}″ de
+          esta posición.
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2 font-mono text-xs text-text-secondary">
           <div className="rounded border border-border bg-background/50 px-2 py-1.5">
@@ -156,7 +203,7 @@ function IdentifyContent({ data, position }: { data: IdentifyResponse; position:
           Pixel ({position.pixelX}, {position.pixelY})
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -167,15 +214,23 @@ function IdentifyContent({ data, position }: { data: IdentifyResponse; position:
           Conocido ({data.n_known})
         </span>
       </div>
-      <div className={cn('space-y-2', data.known_objects.length > 3 && 'max-h-48 overflow-y-auto')}>
+      <div
+        className={cn(
+          "space-y-2",
+          data.known_objects.length > 3 && "max-h-48 overflow-y-auto",
+        )}
+      >
         {data.known_objects.map((obj) => (
           <div
             key={obj.name}
             className="rounded-md border border-border bg-background/40 px-2.5 py-2"
           >
-            <p className="font-display text-sm font-medium leading-tight">{obj.name}</p>
+            <p className="font-display text-sm font-medium leading-tight">
+              {obj.name}
+            </p>
             <p className="mt-0.5 font-mono text-xs text-text-secondary">
-              {obj.vmag && `V=${obj.vmag} · `}offset {obj.total_offset_arcsec ?? '—'}″
+              {obj.vmag && `V=${obj.vmag} · `}offset{" "}
+              {obj.total_offset_arcsec ?? "—"}″
             </p>
           </div>
         ))}
@@ -184,5 +239,5 @@ function IdentifyContent({ data, position }: { data: IdentifyResponse; position:
         RA {data.ra_deg.toFixed(4)}° · Dec {data.dec_deg.toFixed(4)}°
       </p>
     </div>
-  )
+  );
 }

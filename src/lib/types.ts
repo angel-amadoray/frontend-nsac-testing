@@ -79,6 +79,7 @@ export interface IdentifyResponse {
   known_objects: KnownObject[]
   is_known: boolean
   is_candidate: boolean
+  spherex_profile: SpherexProfile | null
   cached: boolean
 }
 
@@ -116,4 +117,43 @@ export interface KnownObjectsParams {
   max_vmag?: number
   max_objects?: number
   include_pixels?: boolean
+}
+
+// ---------- Análisis espectral ----------
+export type Classification = 'STAR' | 'ASTEROID' | 'UNKNOWN'
+export type Model3D = 'rocky' | 'star' | 'unknown'
+
+export interface VisualHints {
+  base_color_hex: string
+  roughness: number
+  metalness: number
+  emissive_intensity: number
+  scale_hint: 'small' | 'medium' | 'large'
+  suggested_3d_model: Model3D
+}
+
+export interface SpherexProfile {
+  classification: Classification
+  temperature_k: number | null
+  dominant_composition: string | null
+  spectral_slope: number
+  color_index: number
+  wavelength_range_um: [number, number] | number[]
+  total_flux: number
+  valid_fraction: number
+  visual_hints: VisualHints
+}
+
+export interface SpectrumResponse {
+  sector_id: string
+  epoch: string
+  detector: number
+  pixel_x: number
+  pixel_y: number
+  wavelengths_um: number[]
+  flux_per_row: number[]
+  wavelength_range_um: number[]
+  total_flux: number
+  valid_fraction: number
+  profile: SpherexProfile
 }

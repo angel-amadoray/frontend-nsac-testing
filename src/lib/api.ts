@@ -7,6 +7,7 @@ import type {
   CompositeParams,
   DifferenceParams,
   KnownObjectsParams,
+  SpectrumResponse,
 } from './types'
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
@@ -71,6 +72,23 @@ export const getDifference = (p: DifferenceParams) =>
 
 export const getKnownObjects = (p: KnownObjectsParams) =>
   request<KnownObjectsResponse>(`/api/analytics/known-objects?${toQuery(p)}`)
+
+export const getSpectrum = (
+  sectorId: string,
+  epoch: string,
+  detector: number,
+  pixelX: number,
+  pixelY: number,
+) =>
+  request<SpectrumResponse>(
+    `/api/analytics/spectrum?${toQuery({
+      sector_id: sectorId,
+      epoch,
+      detector,
+      pixel_x: pixelX,
+      pixel_y: pixelY,
+    })}`,
+  )
 
 export const identify = (
   sectorId: string,
