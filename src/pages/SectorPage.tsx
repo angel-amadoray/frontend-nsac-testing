@@ -316,16 +316,6 @@ export function SectorPage() {
             </div>
           )}
 
-          {activeQuery.data && (
-            <div className="pointer-events-none absolute top-3 left-3 z-30 rounded-md border border-border bg-surface/90 px-2.5 py-1 font-mono text-xs backdrop-blur">
-              {activeQuery.data.cached ? (
-                <span className="text-accent-green">⚡ cache</span>
-              ) : (
-                <span className="text-accent-amber">● recién generado</span>
-              )}
-            </div>
-          )}
-
           {activeQuery.isFetching && activeQuery.data && (
             <div className="pointer-events-none absolute top-3 right-3 z-30 rounded-md border border-accent-cyan/40 bg-surface/90 px-2.5 py-1 font-mono text-xs backdrop-blur">
               <span className="text-accent-cyan">↻ actualizando</span>

@@ -64,13 +64,14 @@ export function ImageViewer({
       <TransformWrapper
         ref={controlsRef}
         initialScale={1}
-        minScale={0.5}
+        minScale={1}
         maxScale={8}
         centerOnInit
+        centerZoomedOut
         doubleClick={{ mode: 'reset' }}
-        wheel={{ step: 0.15 }}
+        wheel={{ step: 0.01 }}
         panning={{ disabled: enableClick, velocityDisabled: false }}
-        limitToBounds={false}
+        limitToBounds={true}
       >
         <TransformComponent
           wrapperStyle={{ width: '100%', height: '100%' }}
