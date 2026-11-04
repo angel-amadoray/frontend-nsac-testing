@@ -8,6 +8,7 @@ import type {
   DifferenceParams,
   KnownObjectsParams,
   SpectrumResponse,
+  AvailableDetectorsResponse
 } from './types'
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
@@ -107,4 +108,9 @@ export const identify = (
       pixel_y: pixelY,
       tolerance_arcsec: toleranceArcsec,
     })}`,
+  )
+
+export const getAvailableDetectors = (sectorId: string, epoch: string) =>
+  request<AvailableDetectorsResponse>(
+    `/api/images/available-detectors?${toQuery({ sector_id: sectorId, epoch })}`
   )

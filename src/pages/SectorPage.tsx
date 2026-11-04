@@ -30,6 +30,7 @@ import type { KnownObject } from "@/lib/types";
 import { cn, formatDec, formatRA } from "@/lib/utils";
 import { ObjectVisualizerModal } from "@/components/three/ObjectVisualizerModal";
 import type { SpectrumInput } from "@/hooks/useSpectrum";
+import { useAvailableDetectors } from "@/hooks/useAvailableDetectors";
 
 // ---- Defaults ----
 const DEFAULTS = {
@@ -110,11 +111,32 @@ export function SectorPage() {
       detector,
       max_vmag: maxVmag,
       include_pixels: true,
-      radius_deg: 2.5
+      radius_deg: 2.5,
     },
     Boolean(hotspot) && overlayEnabled,
   );
 
+  const currentEpochForDetectors = view === 'composite' ? epoch : epochFrom
+  
+  const { data: availableDetectorsData, isLoading: isLoadingDetectors } = useAvailableDetectors(
+    id ?? '',
+    currentEpochForDetectors
+  )
+
+  // seleccionador de detectores
+  const availableDetectors = availableDetectorsData?.detectors
+
+  useEffect(() => {
+    if (
+      availableDetectors && 
+      availableDetectors.length > 0 && 
+      !availableDetectors.includes(detector)
+    ) {
+      set({ detector: availableDetectors[0] })
+    }
+  }, [availableDetectors, detector, set])
+
+  // svg de marcadores
   const markers = useMemo<KnownObject[]>(() => {
     if (!knownQuery.data) return [];
     return knownQuery.data.objects.filter(
@@ -358,6 +380,8 @@ export function SectorPage() {
           <DetectorSelector
             value={detector}
             onChange={(d) => set({ detector: d })}
+            availableDetectors={availableDetectors}
+            isLoading={isLoadingDetectors}
           />
 
           <DetectorAnimation

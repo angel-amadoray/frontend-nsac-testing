@@ -157,3 +157,9 @@ export interface SpectrumResponse {
   valid_fraction: number
   profile: SpherexProfile
 }
+
+export interface AvailableDetectorsResponse {
+  sector_id: string
+  epoch: string
+  detectors: number[]
+}
