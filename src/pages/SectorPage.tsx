@@ -38,7 +38,7 @@ const DEFAULTS = {
   stretch: 10,
   mode: "per_row" as "per_row" | "global",
   threshold: 99,
-  max_vmag: 19,
+  max_vmag: 22,
 };
 
 export function SectorPage() {
@@ -110,6 +110,7 @@ export function SectorPage() {
       detector,
       max_vmag: maxVmag,
       include_pixels: true,
+      radius_deg: 2.5
     },
     Boolean(hotspot) && overlayEnabled,
   );
@@ -453,8 +454,8 @@ export function SectorPage() {
               label="Magnitud límite (V)"
               value={maxVmag}
               min={10}
-              max={22}
-              step={0.5}
+              max={24}
+              step={2}
               unit=" mag"
               onCommit={commitMaxVmag}
               description="SPHEREx detecta hasta V ≈ 20"
