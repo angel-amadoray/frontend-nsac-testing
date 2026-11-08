@@ -13,16 +13,11 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { SliderControl } from "@/components/ui/SliderControl";
 import { AsteroidMarker } from "@/components/viewer/AsteroidMarker";
 import { ErrorOverlay } from "@/components/viewer/ErrorOverlay";
-import {
-  IdentifyPopover,
-  type PopoverPosition,
-} from "@/components/viewer/IdentifyPopover";
 import { ImageViewer } from "@/components/viewer/ImageViewer";
 import { LoadingOverlay } from "@/components/viewer/LoadingOverlay";
 import { useComposite } from "@/hooks/useComposite";
 import { useDifference } from "@/hooks/useDifference";
 import { useHotspot } from "@/hooks/useHotspot";
-import { useIdentify } from "@/hooks/useIdentify";
 import { useKnownObjects } from "@/hooks/useKnownObjects";
 import { useUrlState } from "@/hooks/useUrlState";
 import { resolveApiUrl } from "@/lib/api";
@@ -65,7 +60,6 @@ export function SectorPage() {
   const maxVmag = getNumber("max_vmag", DEFAULTS.max_vmag);
 
   // ---- Popover ----
-  const [popover, setPopover] = useState<PopoverPosition | null>(null);
   const [visualizerInput, setVisualizerInput] = useState<SpectrumInput | null>(
     null,
   );
@@ -116,25 +110,23 @@ export function SectorPage() {
     Boolean(hotspot) && overlayEnabled,
   );
 
-  const currentEpochForDetectors = view === 'composite' ? epoch : epochFrom
-  
-  const { data: availableDetectorsData, isLoading: isLoadingDetectors } = useAvailableDetectors(
-    id ?? '',
-    currentEpochForDetectors
-  )
+  const currentEpochForDetectors = view === "composite" ? epoch : epochFrom;
+
+  const { data: availableDetectorsData, isLoading: isLoadingDetectors } =
+    useAvailableDetectors(id ?? "", currentEpochForDetectors);
 
   // seleccionador de detectores
-  const availableDetectors = availableDetectorsData?.detectors
+  const availableDetectors = availableDetectorsData?.detectors;
 
   useEffect(() => {
     if (
-      availableDetectors && 
-      availableDetectors.length > 0 && 
+      availableDetectors &&
+      availableDetectors.length > 0 &&
       !availableDetectors.includes(detector)
     ) {
-      set({ detector: availableDetectors[0] })
+      set({ detector: availableDetectors[0] });
     }
-  }, [availableDetectors, detector, set])
+  }, [availableDetectors, detector, set]);
 
   // svg de marcadores
   const markers = useMemo<KnownObject[]>(() => {
@@ -144,26 +136,15 @@ export function SectorPage() {
     );
   }, [knownQuery.data]);
 
-  const identifyMutation = useIdentify();
-
   // ---- Reset popover al cambiar de contexto ----
   useEffect(() => {
-    setPopover(null);
-    identifyMutation.reset();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setVisualizerInput(null);
   }, [view, detector, epoch, epochFrom, epochTo]);
 
   // ---- Handlers ----
-  const handleImageClick = (
-    pixelX: number,
-    pixelY: number,
-    screenX: number,
-    screenY: number,
-  ) => {
+  const handleImageClick = (pixelX: number, pixelY: number) => {
     if (!hotspot) return;
-    identifyMutation.reset();
-    setPopover({ screenX, screenY, pixelX, pixelY });
-    identifyMutation.mutate({
+    setVisualizerInput({
       sectorId: hotspot.id,
       epoch: view === "composite" ? epoch : epochFrom,
       detector,
@@ -172,24 +153,14 @@ export function SectorPage() {
     });
   };
 
-  const handleMarkerClick = (
-    obj: KnownObject,
-    screenX: number,
-    screenY: number,
-  ) => {
-    setPopover({ screenX, screenY, markerObject: obj });
-  };
-
-  const closePopover = () => setPopover(null);
-
-  const handleVisualize = (pixelX: number, pixelY: number) => {
-    if (!hotspot) return;
+  const handleMarkerClick = (obj: KnownObject) => {
+    if (!hotspot || obj.pixel_x == null || obj.pixel_y == null) return;
     setVisualizerInput({
       sectorId: hotspot.id,
       epoch: view === "composite" ? epoch : epochFrom,
       detector,
-      pixelX,
-      pixelY,
+      pixelX: obj.pixel_x,
+      pixelY: obj.pixel_y,
     });
   };
 
@@ -221,7 +192,6 @@ export function SectorPage() {
       overlay: "0",
       identify: "0",
     });
-    setPopover(null);
   };
 
   // ---- Mensajes ----
@@ -392,9 +362,9 @@ export function SectorPage() {
               <SliderControl
                 label="Stretch (arcsinh)"
                 value={stretch}
-                min={0.1}
+                min={1}
                 max={100}
-                step={0.5}
+                step={2}
                 formatValue={(v) => v.toFixed(1)}
                 onCommit={commitStretch}
                 description="Más alto = resalta estructuras débiles"
@@ -507,20 +477,10 @@ export function SectorPage() {
         </aside>
       </div>
 
-      <IdentifyPopover
-        position={popover}
-        isLoading={identifyMutation.isPending}
-        data={identifyMutation.data}
-        error={identifyMutation.error}
-        onClose={closePopover}
-        onVisualize={handleVisualize}
-      />
-
       <ObjectVisualizerModal
         open={visualizerInput !== null}
         onClose={() => setVisualizerInput(null)}
         input={visualizerInput}
-        initialProfile={identifyMutation.data?.spherex_profile}
       />
     </div>
   );
