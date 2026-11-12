@@ -32,7 +32,7 @@ const DEFAULTS = {
   view: "composite" as ViewMode,
   detector: 1,
   stretch: 10,
-  mode: "per_row" as "per_row" | "global",
+  mode: "global" as "global" | "per_row",
   threshold: 99,
   max_vmag: 22,
 };
@@ -55,7 +55,7 @@ export function SectorPage() {
   const overlayEnabled = get("overlay", "0") === "1";
   const identifyMode = get("identify", "0") === "1";
   const stretch = getNumber("stretch", DEFAULTS.stretch);
-  const mode = get("mode", DEFAULTS.mode) as "per_row" | "global";
+  const mode = get("mode", DEFAULTS.mode) as "global" | "per_row";
   const threshold = getNumber("threshold", DEFAULTS.threshold);
   const maxVmag = getNumber("max_vmag", DEFAULTS.max_vmag);
 
