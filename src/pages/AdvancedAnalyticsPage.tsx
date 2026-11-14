@@ -30,28 +30,31 @@ function pairToProfile(pair: PairSpectrumResponse): SpherexProfile {
   const shortUm = pair.short?.wavelength_center_um ?? 0.92;
   const longUm = pair.long?.wavelength_center_um ?? 3.12;
 
-  let candidate_class: 'STAR_LIKE' | 'ROCKY_LIKE' | 'UNKNOWN' = 'UNKNOWN'
-  let model: 'star' | 'rocky' | 'unknown' = 'unknown'
+  let candidate_class: "STAR_LIKE" | "ROCKY_LIKE" | "UNKNOWN" = "UNKNOWN";
+  let model: "star" | "rocky" | "unknown" = "unknown";
 
-  if (cls === 'HOT_STAR' || cls === 'SUN_LIKE_STAR' || cls === 'COOL_STAR') {
-    candidate_class = 'STAR_LIKE'
-    model = 'star'
-  } else if (cls === 'VERY_COOL' || cls === 'COOL_DUSTY') {
-    candidate_class = 'ROCKY_LIKE'
-    model = 'rocky'
+  if (cls === "HOT_STAR" || cls === "SUN_LIKE_STAR" || cls === "COOL_STAR") {
+    candidate_class = "STAR_LIKE";
+    model = "star";
+  } else if (cls === "VERY_COOL" || cls === "COOL_DUSTY") {
+    candidate_class = "ROCKY_LIKE";
+    model = "rocky";
   } else {
-    candidate_class = 'UNKNOWN'
-    model = 'unknown'
+    candidate_class = "UNKNOWN";
+    model = "unknown";
   }
 
   // Color del material basado en la temperatura de color
-  let baseColor = '#c8c8c8'
-  const T = pair.classification.color_temperature_k
+  let baseColor = "#c8c8c8";
+  const T = pair.classification.color_temperature_k;
   if (T !== null) {
-    if (T > 10000) baseColor = '#a8c8ff'      // azul (O/B/A)
-    else if (T > 5500) baseColor = '#e0e8ff'  // blanco-azul (F/G)
-    else if (T > 3500) baseColor = '#ffd8b8'  // naranja (K/M)
-    else baseColor = '#e8a070'                // rojo (enanas M tardías)
+    if (T > 10000)
+      baseColor = "#a8c8ff"; // azul (O/B/A)
+    else if (T > 5500)
+      baseColor = "#e0e8ff"; // blanco-azul (F/G)
+    else if (T > 3500)
+      baseColor = "#ffd8b8"; // naranja (K/M)
+    else baseColor = "#e8a070"; // rojo (enanas M tardías)
   }
 
   return {
@@ -76,10 +79,10 @@ function pairToProfile(pair: PairSpectrumResponse): SpherexProfile {
     cutout_edge: false,
     visual_hints: {
       base_color_hex: baseColor,
-      roughness: model === 'star' ? 0.25 : 0.92,
-      metalness: model === 'star' ? 0.05 : 0.15,
-      emissive_intensity: model === 'star' ? 0.85 : 0.0,
-      scale_hint: model === 'star' ? 'large' : 'small',
+      roughness: model === "star" ? 0.25 : 0.92,
+      metalness: model === "star" ? 0.05 : 0.15,
+      emissive_intensity: model === "star" ? 0.85 : 0.0,
+      scale_hint: model === "star" ? "large" : "small",
       suggested_3d_model: model,
     },
   };
@@ -187,11 +190,53 @@ export function AdvancedAnalyticsPage() {
           Análisis avanzado
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-text-secondary">
-          Espectro de dos bandas mediante pares de detectores SPHEREx.
-          Selecciona un pixel brillante de la lista o ingresa coordenadas
-          manualmente.
+          Descubre qué tipo de objeto es, comparando cuánta luz emite en dos
+          colores del espectro. Haz clic en un objeto brillante de la lista para
+          analizarlo.
         </p>
       </header>
+
+      <details className="mb-5 rounded-lg border border-border bg-surface/40 p-4">
+        <summary className="cursor-pointer font-mono text-xs uppercase tracking-wider text-text-secondary">
+          📖 ¿Cómo interpretar estos resultados?
+        </summary>
+        <div className="mt-3 space-y-2 text-sm text-text-secondary">
+          <p>
+            Cada objeto se mide en{" "}
+            <strong className="text-text-primary">
+              dos longitudes de onda
+            </strong>
+            : una banda de luz azul cercana (~0.92 μm) y una banda de infrarrojo
+            medio (~3.12 μm).
+          </p>
+          <p>
+            La diferencia de brillo entre ambas bandas nos dice aproximadamente
+            la{" "}
+            <strong className="text-text-primary">
+              temperatura del objeto
+            </strong>
+            .
+          </p>
+          <ul className="ml-4 list-disc space-y-1 text-xs">
+            <li>
+              <strong className="text-sky-400">Estrellas calientes</strong> →
+              más brillantes en banda azul.
+            </li>
+            <li>
+              <strong className="text-yellow-400">Estrellas como el Sol</strong>{" "}
+              → parecidas en ambas bandas.
+            </li>
+            <li>
+              <strong className="text-red-400">Objetos fríos</strong> (polvo,
+              enanas marrones) → más brillantes en infrarrojo.
+            </li>
+          </ul>
+          <p className="text-xs text-text-secondary/60">
+            Nota: con solo dos puntos, la temperatura es aproximada. Para
+            clasificación precisa se requieren más longitudes de onda.
+          </p>
+        </div>
+      </details>
 
       <div className="grid gap-5 lg:grid-cols-[400px_1fr]">
         {/* ── Panel izquierdo: lista + preview ── */}
@@ -199,7 +244,7 @@ export function AdvancedAnalyticsPage() {
           <div className="rounded-xl border border-border bg-surface p-4">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                Píxeles utilizables
+                Objetos brillantes
               </h3>
               <List className="h-4 w-4 text-text-secondary/50" />
             </div>
@@ -214,12 +259,12 @@ export function AdvancedAnalyticsPage() {
               {brightestMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Buscando píxeles brillantes…
+                  Buscando objetos brillantes…
                 </>
               ) : (
                 <>
                   <Wand2 className="h-4 w-4" />
-                  Cargar lista ({20} pix)
+                  Buscar objetos brillantes
                 </>
               )}
             </Button>
@@ -251,7 +296,7 @@ export function AdvancedAnalyticsPage() {
           {selectedPixel && (
             <div className="rounded-xl border border-border bg-surface p-4">
               <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                Vista previa
+                Dónde está en el cielo
               </h3>
               {compositeQuery.isLoading && (
                 <div
@@ -331,14 +376,13 @@ export function AdvancedAnalyticsPage() {
 
           {pairResult && pairResult.short && pairResult.long && (
             <>
+              <ClassificationCard classification={pairResult.classification} />
               <PairSpectrumCard
                 short={pairResult.short}
                 long={pairResult.long}
                 ratio={pairResult.ratio}
                 ratioError={pairResult.ratio_error}
               />
-              <ClassificationCard classification={pairResult.classification} />
-
               <Button
                 variant="outline"
                 size="md"

@@ -1,134 +1,195 @@
-import { HelpCircle, Star, Snowflake, AlertTriangle } from "lucide-react";
-import type { PairClassification } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import { useState } from 'react'
+import { TemperatureGauge } from './TemperatureGauge'
+import type { PairClassification } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
-const STYLES = {
+const META = {
   HOT_STAR: {
-    color: "text-accent-cyan",
-    border: "border-accent-cyan/40",
-    bg: "bg-accent-cyan/10",
-    Icon: Star,
-    label: "Estrella caliente",
-    hint: "SED consistente con T_color > 10,000 K. Típico de estrellas O/B/A.",
+    emoji: '⭐',
+    title: 'Estrella muy caliente',
+    subtitle: 'Su luz es mayormente azul. Típico de estrellas tipo O, B o A.',
+    color: 'text-sky-400',
+    border: 'border-sky-500/40',
+    bg: 'bg-sky-500/10',
   },
   SUN_LIKE_STAR: {
-    color: "text-accent-green",
-    border: "border-accent-green/40",
-    bg: "bg-accent-green/10",
-    Icon: Star,
-    label: "Estrella tipo solar",
-    hint: "T_color entre 5,500 y 10,000 K. Típico de estrellas F/G.",
+    emoji: '☀️',
+    title: 'Estrella tipo solar',
+    subtitle: 'Parecida a nuestro Sol. Tipo espectral F o G.',
+    color: 'text-yellow-400',
+    border: 'border-yellow-500/40',
+    bg: 'bg-yellow-500/10',
   },
   COOL_STAR: {
-    color: "text-accent-amber",
-    border: "border-accent-amber/40",
-    bg: "bg-accent-amber/10",
-    Icon: Star,
-    label: "Estrella fría",
-    hint: "T_color entre 3,500 y 5,500 K. Típico de estrellas K/M.",
+    emoji: '🌟',
+    title: 'Estrella fría',
+    subtitle: 'Más roja y fría que el Sol. Tipo K o M.',
+    color: 'text-orange-400',
+    border: 'border-orange-500/40',
+    bg: 'bg-orange-500/10',
   },
   VERY_COOL: {
-    color: "text-accent-amber",
-    border: "border-accent-amber/30",
-    bg: "bg-accent-amber/5",
-    Icon: Snowflake,
-    label: "Objeto muy frío",
-    hint: "T_color < 3,500 K. Enana M tardía, enana marrón o polvo.",
+    emoji: '❄️',
+    title: 'Objeto muy frío',
+    subtitle: 'Puede ser una enana marrón, un gigante gaseoso o una nube de polvo.',
+    color: 'text-red-400',
+    border: 'border-red-500/40',
+    bg: 'bg-red-500/10',
   },
   COOL_DUSTY: {
-    color: "text-text-secondary",
-    border: "border-border",
-    bg: "bg-surface/40",
-    Icon: HelpCircle,
-    label: "Polvo frío",
-    hint: "T_color muy baja. Podría ser polvo o error de medición.",
+    emoji: '☁️',
+    title: 'Polvo o nube fría',
+    subtitle: 'Material frío que emite principalmente en infrarrojo.',
+    color: 'text-purple-400',
+    border: 'border-purple-500/40',
+    bg: 'bg-purple-500/10',
   },
   NO_SOURCE: {
-    color: "text-text-secondary",
-    border: "border-border",
-    bg: "bg-surface/40",
-    Icon: HelpCircle,
-    label: "Sin fuente",
-    hint: "No hay flujo positivo en esta posición.",
+    emoji: '⚫',
+    title: 'Sin objeto detectado',
+    subtitle: 'No hay una fuente clara en esta posición del cielo.',
+    color: 'text-text-secondary',
+    border: 'border-border',
+    bg: 'bg-surface/40',
   },
   MASKED: {
-    color: "text-accent-amber",
-    border: "border-accent-amber/30",
-    bg: "bg-accent-amber/5",
-    Icon: AlertTriangle,
-    label: "Enmascarado",
-    hint: "El detector está saturado o con flags en esta posición.",
+    emoji: '🚫',
+    title: 'Datos no confiables',
+    subtitle: 'El detector está saturado o con flags en esta posición.',
+    color: 'text-text-secondary',
+    border: 'border-border',
+    bg: 'bg-surface/40',
   },
   UNDETERMINED: {
-    color: "text-text-secondary",
-    border: "border-border",
-    bg: "bg-surface/40",
-    Icon: HelpCircle,
-    label: "No determinado",
-    hint: "S/N insuficiente o cobertura parcial.",
+    emoji: '❓',
+    title: 'Sin clasificar',
+    subtitle: 'No hay suficiente información para clasificar este objeto con confianza.',
+    color: 'text-text-secondary',
+    border: 'border-border',
+    bg: 'bg-surface/40',
   },
-} as const;
+} as const
 
-export function ClassificationCard({
-  classification,
-}: {
-  classification: PairClassification;
-}) {
-  const style = STYLES[classification.classification] ?? STYLES.UNDETERMINED;
-  const { Icon } = style;
-  const confidencePct = Math.round(classification.confidence * 100);
+// Los nombres viejos del backend se mapean al equivalente físico actual
+const LEGACY_MAP: Record<string, keyof typeof META> = {
+  STEEP_RED_SED: 'HOT_STAR',
+  RED_SED: 'SUN_LIKE_STAR',
+  FLAT_SED: 'COOL_STAR',
+  RISING_SED: 'VERY_COOL',
+  ABSORPTION: 'HOT_STAR',
+  EMISSION: 'COOL_DUSTY',
+  CONTINUUM: 'SUN_LIKE_STAR',
+}
+
+interface ClassificationCardProps {
+  classification: PairClassification
+}
+
+export function ClassificationCard({ classification }: ClassificationCardProps) {
+  const [showDetails, setShowDetails] = useState(false)
+
+  const isRecognized =
+    classification.classification in META
+  const metaKey = isRecognized
+    ? (classification.classification as keyof typeof META)
+    : LEGACY_MAP[classification.classification] ?? 'UNDETERMINED'
+  const meta = META[metaKey]
+  const isLegacy = !isRecognized && classification.classification in LEGACY_MAP
+
+  const T = classification.color_temperature_k
+  const TErr = classification.color_temperature_err_k
+  const confidencePct = Math.round(classification.confidence * 100)
 
   return (
-    <div className={cn("rounded-xl border p-5", style.border, style.bg)}>
-      <div className="flex items-start gap-3">
-        <Icon className={cn("mt-0.5 h-6 w-6 shrink-0", style.color)} />
+    <div className={cn('rounded-xl border p-5', meta.border, meta.bg)}>
+      <div className="flex items-start gap-4">
+        <span className="text-4xl leading-none">{meta.emoji}</span>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-3">
-            <h3
-              className={cn("font-display text-lg font-semibold", style.color)}
-            >
-              {style.label}
+            <h3 className={cn('font-display text-xl font-semibold', meta.color)}>
+              {meta.title}
             </h3>
-            {classification.confidence > 0 && (
-              <span
-                className={cn(
-                  "shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px]",
-                  style.border,
-                  style.color,
-                )}
-              >
+            {confidencePct > 0 && (
+              <span className="shrink-0 rounded-full border border-border bg-background/40 px-2 py-0.5 font-mono text-[10px] text-text-secondary">
                 {confidencePct}% conf.
               </span>
             )}
           </div>
+          <p className="mt-1 text-sm text-text-secondary">{meta.subtitle}</p>
 
-          {classification.color_temperature_k != null && ( // 👈 != null (no !== null)
-            <div className="mt-3 rounded-md border border-border bg-background/40 px-3 py-2">
+          {T !== null && T !== undefined && (
+            <div className="mt-4 rounded-lg border border-border bg-background/40 p-3">
               <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary/70">
-                Temperatura de color
+                Temperatura de color estimada
               </p>
-              <p className="mt-0.5 font-mono text-lg font-semibold text-text-primary">
-                {classification.color_temperature_k.toFixed(0)} K
-                {classification.color_temperature_err_k != null && ( // 👈 != null
-                  <span className="ml-1 text-xs text-text-secondary">
-                    ± {classification.color_temperature_err_k.toFixed(0)} K
+              <p className="mt-0.5 font-mono text-2xl font-semibold text-text-primary">
+                {T.toFixed(0)} K
+                {TErr !== null && TErr !== undefined && (
+                  <span className="ml-1.5 text-sm text-text-secondary">
+                    ± {TErr.toFixed(0)} K
                   </span>
                 )}
               </p>
+              <div className="mt-2">
+                <TemperatureGauge temperatureK={T} />
+              </div>
             </div>
           )}
 
-          {classification.diagnostic_band && (
-            <p className="mt-0.5 font-mono text-xs text-text-secondary/70">
-              Banda diagnóstica: {classification.diagnostic_band}
+          {isLegacy && (
+            <p className="mt-3 rounded-md border border-accent-amber/30 bg-accent-amber/5 p-2 font-mono text-[10px] text-accent-amber">
+              ⚠ El backend devolvió un nombre antiguo ({classification.classification}).
+              La interpretación mostrada es la equivalente física actual.
             </p>
           )}
-          <p className="mt-2 text-sm leading-relaxed text-text-primary">
-            {classification.reason}
-          </p>
-          <p className="mt-1 text-xs text-text-secondary">{style.hint}</p>
+
+          <button
+            onClick={() => setShowDetails((v) => !v)}
+            className="mt-3 flex items-center gap-1 font-mono text-xs text-text-secondary transition-colors hover:text-text-primary"
+          >
+            {showDetails ? (
+              <ChevronUp className="h-3 w-3" />
+            ) : (
+              <ChevronDown className="h-3 w-3" />
+            )}
+            {showDetails ? 'Ocultar detalles técnicos' : 'Ver detalles técnicos'}
+          </button>
+
+          {showDetails && (
+            <div className="mt-2 space-y-2 rounded-md border border-border/60 bg-background/60 p-3 text-xs">
+              <DetailRow
+                label="Clasificación interna"
+                value={classification.classification}
+              />
+              <DetailRow label="Confianza" value={`${confidencePct}%`} />
+              {classification.diagnostic_band && (
+                <DetailRow
+                  label="Banda diagnóstica"
+                  value={classification.diagnostic_band}
+                />
+              )}
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary/70">
+                  Razón del algoritmo
+                </p>
+                <p className="mt-0.5 text-text-secondary">
+                  {classification.reason}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
-  );
+  )
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-2">
+      <span className="text-text-secondary/70">{label}</span>
+      <span className="font-mono text-text-secondary">{value}</span>
+    </div>
+  )
 }
