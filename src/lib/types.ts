@@ -194,15 +194,6 @@ export interface DetectorSample {
   | 'MASKED'
   | 'UNDETERMINED' */
 
-export type PairClassType =
-  | 'STEEP_RED_SED'
-  | 'RED_SED'
-  | 'FLAT_SED'
-  | 'RISING_SED'
-  | 'NO_SOURCE'
-  | 'MASKED'
-  | 'UNDETERMINED'
-
 export interface PairClassification {
   classification: PairClassType
   confidence: number
@@ -266,4 +257,23 @@ export interface BrightestValidResponse {
   n_candidates_scanned: number
   n_valid: number
   pixels: BrightPixelItem[]
+}
+
+export type PairClassType =
+  | 'HOT_STAR'
+  | 'SUN_LIKE_STAR'
+  | 'COOL_STAR'
+  | 'VERY_COOL'
+  | 'COOL_DUSTY'
+  | 'NO_SOURCE'
+  | 'MASKED'
+  | 'UNDETERMINED'
+
+export interface PairClassification {
+  classification: PairClassType
+  confidence: number
+  diagnostic_band: string | null
+  reason: string
+  color_temperature_k: number | null
+  color_temperature_err_k: number | null
 }

@@ -30,26 +30,29 @@ function pairToProfile(pair: PairSpectrumResponse): SpherexProfile {
   const shortUm = pair.short?.wavelength_center_um ?? 0.92;
   const longUm = pair.long?.wavelength_center_um ?? 3.12;
 
-  let candidate_class: "STAR_LIKE" | "ROCKY_LIKE" | "UNKNOWN" = "UNKNOWN";
-  let model: "star" | "rocky" | "unknown" = "unknown";
+  let candidate_class: 'STAR_LIKE' | 'ROCKY_LIKE' | 'UNKNOWN' = 'UNKNOWN'
+  let model: 'star' | 'rocky' | 'unknown' = 'unknown'
 
-  if (cls === "FLAT_SED" || cls === "UNDETERMINED") {
-    candidate_class = "UNKNOWN";
-    model = "unknown";
-  } else if (cls === "STEEP_RED_SED" || cls === "RED_SED") {
-    candidate_class = "STAR_LIKE";
-    model = "star"; // caída estelar → probablemente estrella
-  } else if (cls === "RISING_SED") {
-    candidate_class = "ROCKY_LIKE";
-    model = "rocky"; // polvo caliente → modelo rocky
+  if (cls === 'HOT_STAR' || cls === 'SUN_LIKE_STAR' || cls === 'COOL_STAR') {
+    candidate_class = 'STAR_LIKE'
+    model = 'star'
+  } else if (cls === 'VERY_COOL' || cls === 'COOL_DUSTY') {
+    candidate_class = 'ROCKY_LIKE'
+    model = 'rocky'
+  } else {
+    candidate_class = 'UNKNOWN'
+    model = 'unknown'
   }
 
-  let baseColor = "#c8c8c8";
-  if (ratio < 0.5) baseColor = "#a8c8ff";
-  else if (ratio < 0.9) baseColor = "#d8e5ff";
-  else if (ratio < 1.1) baseColor = "#e0e0e0";
-  else if (ratio < 1.5) baseColor = "#ffd8b8";
-  else baseColor = "#e8a070";
+  // Color del material basado en la temperatura de color
+  let baseColor = '#c8c8c8'
+  const T = pair.classification.color_temperature_k
+  if (T !== null) {
+    if (T > 10000) baseColor = '#a8c8ff'      // azul (O/B/A)
+    else if (T > 5500) baseColor = '#e0e8ff'  // blanco-azul (F/G)
+    else if (T > 3500) baseColor = '#ffd8b8'  // naranja (K/M)
+    else baseColor = '#e8a070'                // rojo (enanas M tardías)
+  }
 
   return {
     candidate_class,
@@ -73,10 +76,10 @@ function pairToProfile(pair: PairSpectrumResponse): SpherexProfile {
     cutout_edge: false,
     visual_hints: {
       base_color_hex: baseColor,
-      roughness: model === "star" ? 0.25 : 0.92,
-      metalness: model === "star" ? 0.05 : 0.15,
-      emissive_intensity: model === "star" ? 0.85 : 0.0,
-      scale_hint: model === "star" ? "large" : "small",
+      roughness: model === 'star' ? 0.25 : 0.92,
+      metalness: model === 'star' ? 0.05 : 0.15,
+      emissive_intensity: model === 'star' ? 0.85 : 0.0,
+      scale_hint: model === 'star' ? 'large' : 'small',
       suggested_3d_model: model,
     },
   };
