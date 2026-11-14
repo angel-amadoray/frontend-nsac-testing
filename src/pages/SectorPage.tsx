@@ -1,6 +1,6 @@
-import { AlertTriangle, Crosshair, RotateCcw } from "lucide-react";
+import { AlertTriangle, Crosshair, RotateCcw, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { DetectorAnimation } from "@/components/controls/DetectorAnimation";
 import { DetectorSelector } from "@/components/controls/DetectorSelector";
 import {
@@ -370,6 +370,18 @@ export function SectorPage() {
                 description="Más alto = resalta estructuras débiles"
               />
 
+              <Link to={`/sector/${hotspot.id}/advanced`} className="block">
+                <div className="flex w-full items-center gap-3 rounded-md border border-accent-purple/40 bg-accent-purple/10 px-3 py-2.5 text-sm text-accent-purple transition-colors hover:bg-accent-purple/20">
+                  <Sparkles className="h-4 w-4 shrink-0" />
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="font-medium">Análisis avanzado</p>
+                    <p className="font-mono text-[10px] text-accent-purple/70">
+                      Espectro de 2 bandas
+                    </p>
+                  </div>
+                </div>
+              </Link>
+
               {/* Mode toggle */}
               <div>
                 <label className="mb-2 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-text-secondary">
@@ -411,7 +423,7 @@ export function SectorPage() {
                 </p>
               )}
 
-              {/* Threshold slider */}  
+              {/* Threshold slider */}
               <SliderControl
                 label="Umbral (percentil)"
                 value={threshold}

@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { HomePage } from '@/pages/HomePage'
 import { SectorPage } from '@/pages/SectorPage'
+import { AdvancedAnalyticsPage } from '@/pages/AdvancedAnalyticsPage'
 
 export function App() {
   return (
@@ -9,6 +10,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/sector/:id" element={<SectorPage />} />
+        <Route path="/sector/:id/advanced" element={<AdvancedAnalyticsPage />} />
         <Route
           path="*"
           element={
