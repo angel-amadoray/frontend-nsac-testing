@@ -172,3 +172,65 @@ export interface AvailableDetectorsResponse {
   epoch: string
   detectors: number[]
 }
+
+export interface DetectorSample {
+  detector: number
+  available: boolean
+  pixel_x: number | null
+  pixel_y: number | null
+  flux: number | null
+  flux_err: number | null
+  snr: number | null
+  valid_fraction_aperture: number
+  wavelength_center_um: number
+  wavelength_range_um: number[]
+}
+
+export type PairClassType =
+  | 'ABSORPTION'
+  | 'EMISSION'
+  | 'CONTINUUM'
+  | 'NO_SOURCE'
+  | 'MASKED'
+  | 'UNDETERMINED'
+
+export interface PairClassification {
+  classification: PairClassType
+  confidence: number
+  diagnostic_band: string | null
+  reason: string
+}
+
+export interface PairSpectrumResponse {
+  sector_id: string
+  epoch: string
+  ra_deg: number
+  dec_deg: number
+  pair: string | null
+  short: DetectorSample | null
+  long: DetectorSample | null
+  ratio: number | null
+  ratio_error: number | null
+  classification: PairClassification
+  cached: boolean
+}
+
+export interface SuggestedTarget {
+  ra_deg: number
+  dec_deg: number
+  flux_short: number
+  flux_long: number
+  snr_short: number
+  snr_long: number
+  pixel_short: [number, number]
+  pixel_long: [number, number]
+}
+
+export interface SuggestTargetResponse {
+  sector_id: string
+  epoch: string
+  pair: string
+  target: SuggestedTarget | null
+  candidates_examined: number
+  reason: string
+}

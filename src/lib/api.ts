@@ -8,7 +8,9 @@ import type {
   DifferenceParams,
   KnownObjectsParams,
   SpectrumResponse,
-  AvailableDetectorsResponse
+  AvailableDetectorsResponse,
+  PairSpectrumResponse,
+  SuggestTargetResponse
 } from './types'
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
@@ -113,4 +115,44 @@ export const identify = (
 export const getAvailableDetectors = (sectorId: string, epoch: string) =>
   request<AvailableDetectorsResponse>(
     `/api/images/available-detectors?${toQuery({ sector_id: sectorId, epoch })}`
+  )
+
+export const getPairSpectrum = (
+  sectorId: string,
+  epoch: string,
+  raDeg: number,
+  decDeg: number,
+  obsId?: string,
+  visit?: number,
+) =>
+  request<PairSpectrumResponse>(
+    `/api/advanced-analytics/pair-spectrum?${toQuery({
+      sector_id: sectorId,
+      epoch,
+      ra_deg: raDeg,
+      dec_deg: decDeg,
+      obs_id: obsId,
+      visit,
+    })}`,
+  )
+
+export const suggestTarget = (
+  sectorId: string,
+  epoch: string,
+  detectorShort = 1,
+  detectorLong = 4,
+  obsId?: string,
+  visit?: number,
+  minSnr = 10,
+) =>
+  request<SuggestTargetResponse>(
+    `/api/advanced-analytics/suggest-target?${toQuery({
+      sector_id: sectorId,
+      epoch,
+      detector_short: detectorShort,
+      detector_long: detectorLong,
+      obs_id: obsId,
+      visit,
+      min_snr: minSnr,
+    })}`,
   )
