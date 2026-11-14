@@ -6,7 +6,7 @@ import { RockyBody } from "@/components/three/RockyBody";
 import { StarBody } from "@/components/three/StarBody";
 import { UnknownBody } from "@/components/three/UnknownBody";
 import { useSpectrum, type SpectrumInput } from "@/hooks/useSpectrum";
-import type { SpherexProfile } from "@/lib/types";
+import type { SpectrumResponse, SpherexProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type Tab = "3d" | "data";
@@ -14,19 +14,25 @@ type Tab = "3d" | "data";
 interface ObjectVisualizerModalProps {
   open: boolean;
   onClose: () => void;
-  input: SpectrumInput | null;
-  /** Perfil ya obtenido (ej. de /identify). Se muestra mientras carga /spectrum. */
-  initialProfile?: SpherexProfile | null;
+  /** Fuente normal: pide a /spectrum usando sector/epoch/detector/pixel. */
+  input?: SpectrumInput | null;
+  /** Override: si se pasa, NO se llama a /spectrum, se usa este perfil directo. */
+  overrideProfile?: SpherexProfile | null;
+  /** Override del sparkline (para el modo pair: 2 puntos en vez de una curva). */
+  overrideSpectrum?: { wavelengths_um: number[]; flux_per_row: number[] } | null;
 }
 
 export function ObjectVisualizerModal({
   open,
   onClose,
-  input,
-  initialProfile,
+  input = null,
+  overrideProfile = null,
+  overrideSpectrum = null,
 }: ObjectVisualizerModalProps) {
   const [tab, setTab] = useState<Tab>("3d");
-  const spectrumQuery = useSpectrum(open ? input : null);
+
+  // 🆕 Solo consulta /spectrum si NO estamos en modo override
+  const spectrumQuery = useSpectrum(open && !overrideProfile ? input : null);
 
   // Cerrar con Escape
   useEffect(() => {
@@ -40,21 +46,54 @@ export function ObjectVisualizerModal({
 
   if (!open) return null;
 
-  const profile = spectrumQuery.data?.profile ?? initialProfile ?? null;
-  const isLoading = spectrumQuery.isLoading && !profile;
-  const error = spectrumQuery.isError ? spectrumQuery.error : null;
+  // 🆕 Prioridad: override > query > null
+  const profile = overrideProfile ?? spectrumQuery.data?.profile ?? null;
+  const isLoading = !overrideProfile && spectrumQuery.isLoading && !profile;
+  const error = !overrideProfile && spectrumQuery.isError ? spectrumQuery.error : null;
+
+  // 🆕 SpectrumResponse: si hay override, construirlo sintético; si no, usar el de la query
+  const spectrumData: SpectrumResponse | null = overrideProfile
+    ? {
+        sector_id: "",
+        epoch: "",
+        detector: 0,
+        pixel_x: 0,
+        pixel_y: 0,
+        wavelengths_um: overrideSpectrum?.wavelengths_um ?? [],
+        flux_per_row: overrideSpectrum?.flux_per_row ?? [],
+        profile: overrideProfile,
+      }
+    : spectrumQuery.data ?? null;
+
+  // 🆕 Texto del header según el modo
+  const headerDetail = (() => {
+    if (!profile) return null;
+    const parts: string[] = [profile.candidate_class.replace("_", " ")];
+    if (profile.confidence > 0) {
+      parts.push(`conf ${(profile.confidence * 100).toFixed(0)}%`);
+    }
+    if (profile.color_ratio !== null) {
+      const ratio = profile.color_ratio.toFixed(3);
+      const err =
+        profile.color_ratio_error !== null
+          ? ` ± ${profile.color_ratio_error.toFixed(3)}`
+          : "";
+      parts.push(`ratio ${ratio}${err}`);
+    }
+    if (input?.pixelX != null && input?.pixelY != null) {
+      parts.push(`${input.pixelX},${input.pixelY}`);
+    }
+    return parts.join(" · ");
+  })();
 
   return createPortal(
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
-        {/* Header */}
         <header className="flex items-start justify-between gap-4 border-b border-border p-5">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
@@ -63,15 +102,11 @@ export function ObjectVisualizerModal({
                 Visualización del objeto
               </h2>
             </div>
-            {profile && (
-  <p className="mt-1 font-mono text-xs text-text-secondary">
-    {profile.candidate_class.replace('_', ' ')} ·{' '}
-    {profile.confidence > 0 && `conf ${(profile.confidence * 100).toFixed(0)}% · `}
-    ratio {profile.color_ratio !== null ? profile.color_ratio.toFixed(3) : 'n/a'}
-    {profile.color_ratio_error !== null && ` ± ${profile.color_ratio_error.toFixed(3)}`} ·{' '}
-    {input?.pixelX},{input?.pixelY}
-  </p>
-)}
+            {headerDetail && (
+              <p className="mt-1 font-mono text-xs text-text-secondary">
+                {headerDetail}
+              </p>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -82,7 +117,6 @@ export function ObjectVisualizerModal({
           </button>
         </header>
 
-        {/* Tabs */}
         <div className="flex border-b border-border">
           <TabButton
             active={tab === "3d"}
@@ -98,7 +132,6 @@ export function ObjectVisualizerModal({
           />
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto">
           {isLoading && (
             <div className="flex h-[420px] items-center justify-center">
@@ -126,21 +159,20 @@ export function ObjectVisualizerModal({
           {profile && !isLoading && (
             <>
               {tab === "3d" && <View3D profile={profile} />}
-              {tab === "data" && (
-                <DataView spectrum={spectrumQuery.data ?? null} />
-              )}
+              {/* 🆕 Pasar spectrumData (que respeta override), no spectrumQuery.data */}
+              {tab === "data" && <DataView spectrum={spectrumData} />}
             </>
           )}
         </div>
 
-        {/* Disclaimer */}
+        {/* 🆕 Disclaimer dinámico según el modo */}
         <footer className="border-t border-border bg-background/50 px-5 py-3">
           <p className="font-mono text-[10px] leading-relaxed text-text-secondary/70">
-            <span className="text-accent-amber">ℹ</span> Interpretación visual
-            basada en el micro-espectro SPHEREx + identidad JPL. No es una
-            imagen real del objeto. La clasificación usa la pendiente espectral
-            sobre un rango de ~0.017 μm (un solo detector); para rigor
-            científico se requiere combinar los 6 detectores.
+            <span className="text-accent-amber">ℹ</span>{" "}
+            {overrideProfile
+              ? "Análisis de 2 bandas (par de detectores del mismo telescopio SPHEREx). La clasificación es un candidato estadístico, no una identificación."
+              : "Interpretación visual basada en el micro-espectro SPHEREx. La clasificación usa la pendiente sobre un rango de ~0.017 μm (un solo detector)."}{" "}
+            Para rigor científico completo se requieren los 6 detectores combinados.
           </p>
         </footer>
       </div>
@@ -177,69 +209,83 @@ function TabButton({
 }
 
 function View3D({ profile }: { profile: SpherexProfile }) {
-  const hints = profile.visual_hints
-  const conf = profile.confidence
+  const hints = profile.visual_hints;
+  const conf = profile.confidence;
 
   return (
     <div className="relative h-[420px] w-full">
-      {/* Badge de confianza */}
       <div className="absolute top-3 left-3 z-10 rounded-md border border-border bg-surface/90 px-2.5 py-1 font-mono text-xs backdrop-blur">
-        <span className={
-          conf > 0.6 ? 'text-accent-green'
-          : conf > 0.3 ? 'text-accent-amber'
-          : 'text-text-secondary'
-        }>
-          {conf > 0.6 ? '● alta confianza' : conf > 0.3 ? '● media' : '● baja'}
+        <span
+          className={
+            conf > 0.6
+              ? "text-accent-green"
+              : conf > 0.3
+                ? "text-accent-amber"
+                : "text-text-secondary"
+          }
+        >
+          {conf > 0.6 ? "● alta confianza" : conf > 0.3 ? "● media" : "● baja"}
         </span>
       </div>
 
       <Scene>
-        {hints.suggested_3d_model === 'rocky' && (
-          <RockyBody color={hints.base_color_hex} roughness={hints.roughness} metalness={hints.metalness} />
+        {hints.suggested_3d_model === "rocky" && (
+          <RockyBody
+            color={hints.base_color_hex}
+            roughness={hints.roughness}
+            metalness={hints.metalness}
+          />
         )}
-        {hints.suggested_3d_model === 'star' && (
-          <StarBody color={hints.base_color_hex} emissiveIntensity={hints.emissive_intensity} />
+        {hints.suggested_3d_model === "star" && (
+          <StarBody
+            color={hints.base_color_hex}
+            emissiveIntensity={hints.emissive_intensity}
+          />
         )}
-        {hints.suggested_3d_model === 'unknown' && (
+        {hints.suggested_3d_model === "unknown" && (
           <UnknownBody color={hints.base_color_hex} />
         )}
       </Scene>
     </div>
-  )
+  );
 }
 
-function DataView({ spectrum }: { spectrum: import('@/lib/types').SpectrumResponse | null }) {
+function DataView({ spectrum }: { spectrum: SpectrumResponse | null }) {
   if (!spectrum) {
     return (
       <div className="p-6 text-center text-sm text-text-secondary">
         Datos del espectro no disponibles.
       </div>
-    )
+    );
   }
 
-  const { profile } = spectrum
+  const { profile } = spectrum;
 
-  const fmt = (v: number | null, d = 4) => (v !== null && v !== undefined ? v.toFixed(d) : '—')
+  const fmt = (v: number | null, d = 4) =>
+    v !== null && v !== undefined ? v.toFixed(d) : "—";
   const fmtExp = (v: number | null) =>
-    v !== null && v !== undefined ? v.toExponential(2) : '—'
+    v !== null && v !== undefined ? v.toExponential(2) : "—";
 
   const ratioDisplay =
     profile.color_ratio !== null
       ? `${fmt(profile.color_ratio, 3)}${
-          profile.color_ratio_error !== null ? ` ± ${fmt(profile.color_ratio_error, 3)}` : ''
+          profile.color_ratio_error !== null
+            ? ` ± ${fmt(profile.color_ratio_error, 3)}`
+            : ""
         }`
-      : '—'
+      : "—";
 
   const confDisplay =
-    profile.confidence > 0 ? `${(profile.confidence * 100).toFixed(0)}%` : 'baja'
+    profile.confidence > 0
+      ? `${(profile.confidence * 100).toFixed(0)}%`
+      : "baja";
 
   return (
     <div className="space-y-4 p-5">
-      {/* Fila 1: clasificación y color */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <MetricCard
           label="Clase candidata"
-          value={profile.candidate_class.replace('_', ' ')}
+          value={profile.candidate_class.replace("_", " ")}
           highlight
         />
         <MetricCard label="Confianza" value={confDisplay} />
@@ -247,25 +293,30 @@ function DataView({ spectrum }: { spectrum: import('@/lib/types').SpectrumRespon
         <MetricCard label="Color index" value={fmt(profile.color_index, 3)} />
       </div>
 
-      {/* Fila 2: fotometría y cobertura */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <MetricCard label="Flujo" value={fmtExp(profile.total_flux)} />
-        <MetricCard label="S/N" value={profile.snr !== null ? profile.snr.toFixed(1) : '—'} />
+        <MetricCard
+          label="S/N"
+          value={profile.snr !== null ? profile.snr.toFixed(1) : "—"}
+        />
         <MetricCard label="Puntos λ" value={`${profile.n_spectral_points}`} />
-        <MetricCard label="Rango λ" value={`${profile.wavelength_range_nm.toFixed(1)} nm`} />
+        <MetricCard
+          label="Rango λ"
+          value={`${profile.wavelength_range_nm.toFixed(1)} nm`}
+        />
       </div>
 
-      {/* Aviso de rango insuficiente */}
       {!profile.reliable && (
         <div className="rounded-md border border-accent-amber/30 bg-accent-amber/5 p-3">
           <p className="font-mono text-xs text-accent-amber">
-            ⚠ Rango espectral insuficiente ({profile.wavelength_range_nm.toFixed(1)} nm, mínimo 3 nm).
-            La clasificación requiere combinar los 6 detectores para mayor cobertura.
+            ⚠ Rango espectral insuficiente (
+            {profile.wavelength_range_nm.toFixed(1)} nm, mínimo 3 nm). La
+            clasificación requiere combinar los 6 detectores para mayor
+            cobertura.
           </p>
         </div>
       )}
 
-      {/* Reasons */}
       {profile.reasons.length > 0 && (
         <div className="rounded-lg border border-border bg-background/40 p-3">
           <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary/70">
@@ -284,17 +335,18 @@ function DataView({ spectrum }: { spectrum: import('@/lib/types').SpectrumRespon
         </div>
       )}
 
-      {/* Sparkline */}
-      {spectrum.wavelengths_um.length > 2 && (
+      {spectrum.wavelengths_um.length > 0 && (
         <div className="rounded-lg border border-border bg-background/40 p-4">
           <p className="mb-3 font-mono text-xs uppercase tracking-wider text-text-secondary">
-            Micro-espectro ({spectrum.wavelengths_um.length} muestras)
+            {spectrum.wavelengths_um.length > 2
+              ? `Micro-espectro (${spectrum.wavelengths_um.length} muestras)`
+              : `Puntos espectrales (${spectrum.wavelengths_um.length})`}
           </p>
           <Sparkline xs={spectrum.wavelengths_um} ys={spectrum.flux_per_row} />
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function MetricCard({
@@ -344,6 +396,9 @@ function Sparkline({ xs, ys }: { xs: number[]; ys: number[] }) {
     })
     .join(" ");
 
+  // 🆕 Puntos visibles si son pocos (modo pair = 2 puntos)
+  const showDots = xs.length <= 6;
+
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="h-32 w-full">
       <polyline
@@ -353,6 +408,20 @@ function Sparkline({ xs, ys }: { xs: number[]; ys: number[] }) {
         strokeWidth={1.5}
         strokeLinejoin="round"
       />
+      {showDots &&
+        xs.map((x, i) => {
+          const px = PAD + ((x - xMin) / xSpan) * (W - 2 * PAD);
+          const py = H - PAD - ((ys[i] - yMin) / ySpan) * (H - 2 * PAD);
+          return (
+            <circle
+              key={i}
+              cx={px}
+              cy={py}
+              r={4}
+              fill="hsl(var(--accent-cyan))"
+            />
+          );
+        })}
     </svg>
   );
 }

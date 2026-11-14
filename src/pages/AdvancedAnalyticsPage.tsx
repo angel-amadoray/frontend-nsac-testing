@@ -1,14 +1,78 @@
-import { AlertCircle, Loader2, Sparkles, Wand2 } from 'lucide-react'
+import { AlertCircle, Loader2, List, Sparkles, Wand2, Box } from 'lucide-react'
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { PairSpectrumCard } from '@/components/advanced/PairSpectrumCard'
 import { ClassificationCard } from '@/components/advanced/ClassificationCard'
+import { TargetPreview } from '@/components/advanced/TargetPreview'
+import { BrightPixelsList } from '@/components/advanced/BrightPixelsList'
+import { ObjectVisualizerModal } from '@/components/three/ObjectVisualizerModal'
 import { useHotspot } from '@/hooks/useHotspot'
 import { usePairSpectrum } from '@/hooks/usePairSpectrum'
-import { useSuggestTarget } from '@/hooks/useSuggestTarget'
+import { useBrightestValid } from '@/hooks/useBrightestValid'
+import { useComposite } from '@/hooks/useComposite'
 import { useUrlState } from '@/hooks/useUrlState'
+import { resolveApiUrl } from '@/lib/api'
+import type { BrightPixelItem, PairSpectrumResponse, SpherexProfile } from '@/lib/types'
+
+/**
+ * Convierte un par (2 puntos) a un SpherexProfile compatible con el modal 3D.
+ */
+function pairToProfile(pair: PairSpectrumResponse): SpherexProfile {
+  const cls = pair.classification.classification
+  const ratio = pair.ratio ?? 1.0
+  const confidence = pair.classification.confidence
+  const shortUm = pair.short?.wavelength_center_um ?? 0.92
+  const longUm = pair.long?.wavelength_center_um ?? 3.12
+
+  let candidate_class: 'STAR_LIKE' | 'ROCKY_LIKE' | 'UNKNOWN' = 'UNKNOWN'
+  let model: 'star' | 'rocky' | 'unknown' = 'unknown'
+
+  if (cls === 'CONTINUUM') {
+    candidate_class = 'STAR_LIKE'
+    model = 'star'
+  } else if (cls === 'ABSORPTION' || cls === 'EMISSION') {
+    candidate_class = 'ROCKY_LIKE'
+    model = 'rocky'
+  }
+
+  let baseColor = '#c8c8c8'
+  if (ratio < 0.5) baseColor = '#a8c8ff'
+  else if (ratio < 0.9) baseColor = '#d8e5ff'
+  else if (ratio < 1.1) baseColor = '#e0e0e0'
+  else if (ratio < 1.5) baseColor = '#ffd8b8'
+  else baseColor = '#e8a070'
+
+  return {
+    candidate_class,
+    confidence,
+    reasons: [cls.toLowerCase()],
+    color_ratio: pair.ratio,
+    color_ratio_error: pair.ratio_error,
+    color_index: pair.ratio !== null ? Math.max(-1, Math.min(1, (1 - ratio) * 2)) : null,
+    f_short: pair.short?.flux ?? null,
+    f_long: pair.long?.flux ?? null,
+    wavelength_range_um: [shortUm, longUm],
+    wavelength_range_nm: (longUm - shortUm) * 1000,
+    n_spectral_points: 2,
+    reliable: true,
+    total_flux: null,
+    flux_error: null,
+    snr: Math.min(pair.short?.snr ?? 0, pair.long?.snr ?? 0) || null,
+    valid_fraction_aperture: 1.0,
+    valid_fraction_annulus: 1.0,
+    cutout_edge: false,
+    visual_hints: {
+      base_color_hex: baseColor,
+      roughness: model === 'star' ? 0.25 : 0.92,
+      metalness: model === 'star' ? 0.05 : 0.15,
+      emissive_intensity: model === 'star' ? 0.85 : 0.0,
+      scale_hint: model === 'star' ? 'large' : 'small',
+      suggested_3d_model: model,
+    },
+  }
+}
 
 export function AdvancedAnalyticsPage() {
   const { id } = useParams<{ id: string }>()
@@ -17,47 +81,49 @@ export function AdvancedAnalyticsPage() {
   const hotspot = hotspotQuery.data
 
   const epoch = hotspot?.epochs[0] ?? ''
-  const [raInput, setRaInput] = useState<string>('')
-  const [decInput, setDecInput] = useState<string>('')
+  const obsId = get('obs_id', '') || undefined
+  const visit = Number(get('visit', '0')) || undefined
+
+  const [selectedPixel, setSelectedPixel] = useState<BrightPixelItem | null>(null)
+  const [show3D, setShow3D] = useState(false)
 
   const pairMutation = usePairSpectrum()
-  const suggestMutation = useSuggestTarget()
+  const brightestMutation = useBrightestValid()
 
-  const handleSuggest = () => {
+  const compositeQuery = useComposite(
+    { sector_id: id ?? '', epoch, detector: 1 },
+    Boolean(hotspot) && Boolean(epoch),
+  )
+  const compositeUrl = compositeQuery.data ? resolveApiUrl(compositeQuery.data.url) : null
+
+  const handleLoadList = () => {
     if (!hotspot) return
-    suggestMutation.mutate({
+    brightestMutation.mutate({
       sectorId: hotspot.id,
       epoch,
-      obsId: get('obs_id', '') || undefined,
-      visit: Number(get('visit', '0')) || undefined,
+      obsId,
+      visit,
+      topN: 20,
       minSnr: 10,
     })
   }
 
-  const handleAnalyze = () => {
+  const handleSelectPixel = (p: BrightPixelItem) => {
+    setSelectedPixel(p)
     if (!hotspot) return
-    const ra = Number(raInput)
-    const dec = Number(decInput)
-    if (!Number.isFinite(ra) || !Number.isFinite(dec)) return
     pairMutation.mutate({
       sectorId: hotspot.id,
       epoch,
-      raDeg: ra,
-      decDeg: dec,
-      obsId: get('obs_id', '') || undefined,
-      visit: Number(get('visit', '0')) || undefined,
+      raDeg: p.ra_deg,
+      decDeg: p.dec_deg,
+      obsId,
+      visit,
     })
-  }
-
-  // Autocompletar cuando suggestMutation encuentra target
-  if (suggestMutation.data?.target && !raInput && !decInput) {
-    setRaInput(suggestMutation.data.target.ra_deg.toFixed(5))
-    setDecInput(suggestMutation.data.target.dec_deg.toFixed(5))
   }
 
   if (hotspotQuery.isLoading) {
     return (
-      <div className="mx-auto max-w-5xl px-6 py-6">
+      <div className="mx-auto max-w-6xl px-6 py-6">
         <Skeleton className="h-12 w-64" />
         <Skeleton className="mt-4 h-96 w-full" />
       </div>
@@ -68,9 +134,7 @@ export function AdvancedAnalyticsPage() {
     return (
       <div className="mx-auto max-w-xl px-6 py-24 text-center">
         <AlertCircle className="mx-auto h-12 w-12 text-danger" />
-        <h1 className="mt-4 font-display text-2xl font-bold">
-          Sector no encontrado
-        </h1>
+        <h1 className="mt-4 font-display text-2xl font-bold">Sector no encontrado</h1>
       </div>
     )
   }
@@ -79,51 +143,116 @@ export function AdvancedAnalyticsPage() {
     return (
       <div className="mx-auto max-w-xl px-6 py-24 text-center">
         <AlertCircle className="mx-auto h-12 w-12 text-text-secondary" />
-        <h1 className="mt-4 font-display text-2xl font-bold">
-          Sin épocas disponibles
-        </h1>
-        <p className="mt-2 text-text-secondary">
-          Este sector no tiene datos descargados.
-        </p>
+        <h1 className="mt-4 font-display text-2xl font-bold">Sin épocas disponibles</h1>
         <Link to={`/sector/${id}`} className="mt-4 inline-block">
-          <Button variant="outline" size="sm">
-            Volver al sector
-          </Button>
+          <Button variant="outline" size="sm">Volver al sector</Button>
         </Link>
       </div>
     )
   }
 
+  const pairResult = pairMutation.data
+  const profile3D = pairResult ? pairToProfile(pairResult) : null
+
   return (
-    <div className="mx-auto max-w-5xl px-6 py-6">
+    <div className="mx-auto max-w-6xl px-6 py-6">
       <header className="mb-6">
         <p className="font-mono text-xs uppercase tracking-wider text-text-secondary/70">
           <Link to={`/sector/${id}`} className="hover:text-text-primary">
             ← {hotspot.name}
           </Link>
         </p>
-        <h1 className="mt-1 font-display text-3xl font-bold">
-          Análisis avanzado
-        </h1>
+        <h1 className="mt-1 font-display text-3xl font-bold">Análisis avanzado</h1>
         <p className="mt-2 max-w-2xl text-sm text-text-secondary">
-          Espectro de dos bandas mediante pares de detectores del mismo
-          telescopio SPHEREx. Detecta bandas de absorción a 3 μm (hielo de
-          agua) u otras firmas espectrales.
+          Espectro de dos bandas mediante pares de detectores SPHEREx.
+          Selecciona un pixel brillante de la lista o ingresa coordenadas manualmente.
         </p>
       </header>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-        {/* Panel de resultados */}
+      <div className="grid gap-5 lg:grid-cols-[400px_1fr]">
+        {/* ── Panel izquierdo: lista + preview ── */}
+        <aside className="space-y-4">
+          <div className="rounded-xl border border-border bg-surface p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                Píxeles utilizables
+              </h3>
+              <List className="h-4 w-4 text-text-secondary/50" />
+            </div>
+
+            <Button
+              variant="primary"
+              size="sm"
+              className="mt-3 w-full"
+              onClick={handleLoadList}
+              disabled={brightestMutation.isPending || !epoch}
+            >
+              {brightestMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Buscando píxeles brillantes…
+                </>
+              ) : (
+                <>
+                  <Wand2 className="h-4 w-4" />
+                  Cargar lista ({20} pix)
+                </>
+              )}
+            </Button>
+
+            {brightestMutation.data && brightestMutation.data.pixels.length === 0 && (
+              <p className="mt-2 rounded-md border border-accent-amber/30 bg-accent-amber/5 p-2 font-mono text-xs text-accent-amber">
+                Sin píxeles válidos. Prueba bajar min_snr en el backend.
+              </p>
+            )}
+
+            {brightestMutation.data && brightestMutation.data.pixels.length > 0 && (
+              <div className="mt-3">
+                <BrightPixelsList
+                  pixels={brightestMutation.data.pixels}
+                  selectedRank={selectedPixel?.rank ?? null}
+                  onSelect={handleSelectPixel}
+                />
+                <p className="mt-2 font-mono text-[10px] text-text-secondary/60">
+                  {brightestMutation.data.n_valid} válidos de{' '}
+                  {brightestMutation.data.n_candidates_scanned} escaneados
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Preview del target */}
+          {selectedPixel && compositeUrl && (
+            <div className="rounded-xl border border-border bg-surface p-4">
+              <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-text-secondary">
+                Vista previa
+              </h3>
+              <TargetPreview
+                compositeUrl={compositeUrl}
+                pixelX={selectedPixel.pixel_short_x}
+                pixelY={selectedPixel.pixel_short_y}
+                displaySize={340}
+                zoom={3}
+              />
+              <p className="mt-2 font-mono text-[10px] text-text-secondary/60">
+                RA {selectedPixel.ra_deg.toFixed(4)}° · Dec {selectedPixel.dec_deg.toFixed(4)}°
+              </p>
+            </div>
+          )}
+        </aside>
+
+        {/* ── Panel derecho: análisis + 3D ── */}
         <div className="space-y-4">
-          {!pairMutation.data && !pairMutation.isPending && (
+          {!pairResult && !pairMutation.isPending && (
             <div className="rounded-xl border border-border bg-surface p-12 text-center">
               <Sparkles className="mx-auto h-10 w-10 text-accent-cyan/50" />
               <h2 className="mt-4 font-display text-lg font-semibold">
-                Selecciona un objetivo
+                Selecciona un píxel
               </h2>
-              <p className="mt-2 max-w-md mx-auto text-sm text-text-secondary">
-                Usa el panel de la derecha para buscar automáticamente una
-                fuente brillante o ingresa coordenadas manualmente.
+              <p className="mt-2 mx-auto max-w-md text-sm text-text-secondary">
+                Haz clic en "Cargar lista" para ver los píxeles brillantes con
+                cobertura en ambos detectores, o ingresa coordenadas
+                manualmente en la lista.
               </p>
             </div>
           )}
@@ -134,150 +263,74 @@ export function AdvancedAnalyticsPage() {
               <p className="mt-4 font-mono text-sm text-text-secondary">
                 Analizando par de detectores…
               </p>
-              <p className="mt-1 font-mono text-xs text-text-secondary/60">
-                Puede tardar ~10-20 s
-              </p>
             </div>
           )}
 
           {pairMutation.isError && (
             <div className="rounded-xl border border-danger/30 bg-danger/5 p-6">
               <AlertCircle className="h-6 w-6 text-danger" />
-              <p className="mt-2 font-display text-base font-semibold">
-                Error en el análisis
-              </p>
+              <p className="mt-2 font-display text-base font-semibold">Error en el análisis</p>
               <p className="mt-1 font-mono text-xs text-text-secondary">
-                {pairMutation.error instanceof Error
-                  ? pairMutation.error.message
-                  : 'Error desconocido'}
+                {pairMutation.error instanceof Error ? pairMutation.error.message : 'Error desconocido'}
               </p>
             </div>
           )}
 
-          {pairMutation.data && pairMutation.data.short && pairMutation.data.long && (
+          {pairResult && pairResult.short && pairResult.long && (
             <>
               <PairSpectrumCard
-                short={pairMutation.data.short}
-                long={pairMutation.data.long}
-                ratio={pairMutation.data.ratio}
-                ratioError={pairMutation.data.ratio_error}
+                short={pairResult.short}
+                long={pairResult.long}
+                ratio={pairResult.ratio}
+                ratioError={pairResult.ratio_error}
               />
-              <ClassificationCard
-                classification={pairMutation.data.classification}
-              />
-            </>
-          )}
+              <ClassificationCard classification={pairResult.classification} />
 
-          {pairMutation.data && (!pairMutation.data.short || !pairMutation.data.long) && (
-            <div className="rounded-xl border border-accent-amber/30 bg-accent-amber/5 p-6">
-              <AlertCircle className="h-6 w-6 text-accent-amber" />
-              <p className="mt-2 font-display text-base font-semibold">
-                Sin cobertura
-              </p>
-              <p className="mt-1 text-sm text-text-secondary">
-                {pairMutation.data.classification.reason}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Panel de control */}
-        <aside className="space-y-4">
-          <div className="rounded-xl border border-border bg-surface p-5">
-            <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-text-secondary">
-              Objetivo
-            </h3>
-
-            <Button
-              variant="primary"
-              size="sm"
-              className="mt-3 w-full"
-              onClick={handleSuggest}
-              disabled={suggestMutation.isPending || !epoch}
-            >
-              {suggestMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Buscando…
-                </>
-              ) : (
-                <>
-                  <Wand2 className="h-4 w-4" />
-                  Encontrar fuente brillante
-                </>
-              )}
-            </Button>
-
-            {suggestMutation.data && !suggestMutation.data.target && (
-              <p className="mt-2 rounded-md border border-accent-amber/30 bg-accent-amber/5 p-2 font-mono text-xs text-accent-amber">
-                {suggestMutation.data.reason}
-              </p>
-            )}
-
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="mb-1 block font-mono text-xs uppercase tracking-wider text-text-secondary">
-                  RA (grados)
-                </label>
-                <input
-                  type="number"
-                  step="0.00001"
-                  value={raInput}
-                  onChange={(e) => setRaInput(e.target.value)}
-                  placeholder="88.31"
-                  className="w-full rounded-md border border-border bg-background/40 px-3 py-2 font-mono text-sm text-text-primary placeholder:text-text-secondary/40 focus:border-accent-cyan focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block font-mono text-xs uppercase tracking-wider text-text-secondary">
-                  Dec (grados)
-                </label>
-                <input
-                  type="number"
-                  step="0.00001"
-                  value={decInput}
-                  onChange={(e) => setDecInput(e.target.value)}
-                  placeholder="-6.75"
-                  className="w-full rounded-md border border-border bg-background/40 px-3 py-2 font-mono text-sm text-text-primary placeholder:text-text-secondary/40 focus:border-accent-cyan focus:outline-none"
-                />
-              </div>
               <Button
                 variant="outline"
                 size="md"
                 className="w-full"
-                onClick={handleAnalyze}
-                disabled={
-                  pairMutation.isPending ||
-                  !raInput ||
-                  !decInput ||
-                  !Number.isFinite(Number(raInput)) ||
-                  !Number.isFinite(Number(decInput))
-                }
+                onClick={() => setShow3D(true)}
               >
-                {pairMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Analizando…
-                  </>
-                ) : (
-                  'Analizar par espectral'
-                )}
+                <Box className="h-4 w-4" />
+                Ver en 3D
               </Button>
-            </div>
-          </div>
+            </>
+          )}
 
-          <div className="rounded-xl border border-border bg-surface/50 p-4">
-            <p className="font-mono text-[10px] leading-relaxed text-text-secondary/70">
-              <span className="text-accent-amber">ℹ</span> Análisis basado en{' '}
-              <span className="text-text-primary">2 bandas</span> del mismo
-              telescopio SPHEREx. La clasificación es un candidato
-              estadístico, no una identificación definitiva. Para espectro
-              completo de 6 puntos se requieren 3 visitas con telescopios
-              distintos.
-            </p>
-          </div>
-        </aside>
+          {pairResult && (!pairResult.short || !pairResult.long) && (
+            <div className="rounded-xl border border-accent-amber/30 bg-accent-amber/5 p-6">
+              <AlertCircle className="h-6 w-6 text-accent-amber" />
+              <p className="mt-2 font-display text-base font-semibold">Sin cobertura</p>
+              <p className="mt-1 text-sm text-text-secondary">
+                {pairResult.classification.reason}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Modal 3D con override */}
+      <ObjectVisualizerModal
+        open={show3D && profile3D !== null}
+        onClose={() => setShow3D(false)}
+        input={null}
+        overrideProfile={profile3D}
+        overrideSpectrum={
+          pairResult && pairResult.short && pairResult.long
+            ? {
+                wavelengths_um: [
+                  pairResult.short.wavelength_center_um,
+                  pairResult.long.wavelength_center_um,
+                ],
+                flux_per_row: [
+                  pairResult.short.flux ?? 0,
+                  pairResult.long.flux ?? 0,
+                ],
+              }
+            : null
+        }
+      />
     </div>
   )
 }

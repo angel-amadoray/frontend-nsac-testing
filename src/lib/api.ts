@@ -10,7 +10,8 @@ import type {
   SpectrumResponse,
   AvailableDetectorsResponse,
   PairSpectrumResponse,
-  SuggestTargetResponse
+  SuggestTargetResponse,
+  BrightestValidResponse
 } from './types'
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
@@ -153,6 +154,29 @@ export const suggestTarget = (
       detector_long: detectorLong,
       obs_id: obsId,
       visit,
+      min_snr: minSnr,
+    })}`,
+  )
+
+export const getBrightestValid = (
+  sectorId: string,
+  epoch: string,
+  detectorShort = 1,
+  detectorLong = 4,
+  obsId?: string,
+  visit?: number,
+  topN = 20,
+  minSnr = 10,
+) =>
+  request<BrightestValidResponse>(
+    `/api/advanced-analytics/brightest-valid?${toQuery({
+      sector_id: sectorId,
+      epoch,
+      detector_short: detectorShort,
+      detector_long: detectorLong,
+      obs_id: obsId,
+      visit,
+      top_n: topN,
       min_snr: minSnr,
     })}`,
   )

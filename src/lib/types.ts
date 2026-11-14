@@ -234,3 +234,27 @@ export interface SuggestTargetResponse {
   candidates_examined: number
   reason: string
 }
+
+export interface BrightPixelItem {
+  rank: number
+  ra_deg: number
+  dec_deg: number
+  flux_short: number
+  flux_long: number
+  snr_short: number
+  snr_long: number
+  ratio: number
+  pixel_short_x: number
+  pixel_short_y: number
+  pixel_long_x: number
+  pixel_long_y: number
+}
+
+export interface BrightestValidResponse {
+  sector_id: string
+  epoch: string
+  pair: string
+  n_candidates_scanned: number
+  n_valid: number
+  pixels: BrightPixelItem[]
+}
