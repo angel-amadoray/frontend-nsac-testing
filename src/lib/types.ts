@@ -132,15 +132,27 @@ export interface VisualHints {
   suggested_3d_model: Model3D
 }
 
+export type CandidateClass = 'STAR_LIKE' | 'ROCKY_LIKE' | 'UNKNOWN'
+
 export interface SpherexProfile {
-  classification: Classification
-  temperature_k: number | null
-  dominant_composition: string | null
-  spectral_slope: number
-  color_index: number
-  wavelength_range_um: [number, number] | number[]
-  total_flux: number
-  valid_fraction: number
+  candidate_class: 'STAR_LIKE' | 'ROCKY_LIKE' | 'UNKNOWN'
+  confidence: number
+  reasons: string[]
+  color_ratio: number | null
+  color_ratio_error: number | null
+  color_index: number | null
+  f_short: number | null
+  f_long: number | null
+  wavelength_range_um: number[]
+  wavelength_range_nm: number
+  n_spectral_points: number
+  reliable: boolean
+  total_flux: number | null
+  flux_error: number | null
+  snr: number | null
+  valid_fraction_aperture: number
+  valid_fraction_annulus: number
+  cutout_edge: boolean
   visual_hints: VisualHints
 }
 
@@ -152,9 +164,6 @@ export interface SpectrumResponse {
   pixel_y: number
   wavelengths_um: number[]
   flux_per_row: number[]
-  wavelength_range_um: number[]
-  total_flux: number
-  valid_fraction: number
   profile: SpherexProfile
 }
 

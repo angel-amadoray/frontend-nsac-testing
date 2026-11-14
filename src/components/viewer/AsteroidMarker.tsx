@@ -1,4 +1,6 @@
 import type { KnownObject } from '@/lib/types'
+import { IMAGE_SIZE } from '@/components/viewer/ImageViewer'
+
 
 interface AsteroidMarkerProps {
   object: KnownObject
@@ -15,9 +17,11 @@ export function AsteroidMarker({ object, onClick, color = 'cyan' }: AsteroidMark
 
   const stroke = color === 'cyan' ? 'hsl(var(--accent-cyan))' : 'hsl(var(--accent-green))'
 
+  const svgY = IMAGE_SIZE - 1 - object.pixel_y
+
   return (
     <g
-      transform={`translate(${object.pixel_x} ${object.pixel_y})`}
+      transform={`translate(${object.pixel_x} ${svgY})`}
       className="cursor-pointer"
       style={{ pointerEvents: 'auto' }}
       onClick={(e) => {

@@ -1,22 +1,22 @@
-import { AlertCircle, Database, Loader2, Rotate3d, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { Scene } from '@/components/three/Scene'
-import { RockyBody } from '@/components/three/RockyBody'
-import { StarBody } from '@/components/three/StarBody'
-import { UnknownBody } from '@/components/three/UnknownBody'
-import { useSpectrum, type SpectrumInput } from '@/hooks/useSpectrum'
-import type { SpherexProfile } from '@/lib/types'
-import { cn } from '@/lib/utils'
+import { AlertCircle, Database, Loader2, Rotate3d, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { Scene } from "@/components/three/Scene";
+import { RockyBody } from "@/components/three/RockyBody";
+import { StarBody } from "@/components/three/StarBody";
+import { UnknownBody } from "@/components/three/UnknownBody";
+import { useSpectrum, type SpectrumInput } from "@/hooks/useSpectrum";
+import type { SpherexProfile } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-type Tab = '3d' | 'data'
+type Tab = "3d" | "data";
 
 interface ObjectVisualizerModalProps {
-  open: boolean
-  onClose: () => void
-  input: SpectrumInput | null
+  open: boolean;
+  onClose: () => void;
+  input: SpectrumInput | null;
   /** Perfil ya obtenido (ej. de /identify). Se muestra mientras carga /spectrum. */
-  initialProfile?: SpherexProfile | null
+  initialProfile?: SpherexProfile | null;
 }
 
 export function ObjectVisualizerModal({
@@ -25,24 +25,24 @@ export function ObjectVisualizerModal({
   input,
   initialProfile,
 }: ObjectVisualizerModalProps) {
-  const [tab, setTab] = useState<Tab>('3d')
-  const spectrumQuery = useSpectrum(open ? input : null)
+  const [tab, setTab] = useState<Tab>("3d");
+  const spectrumQuery = useSpectrum(open ? input : null);
 
   // Cerrar con Escape
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, onClose])
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open, onClose]);
 
-  if (!open) return null
+  if (!open) return null;
 
-  const profile = spectrumQuery.data?.profile ?? initialProfile ?? null
-  const isLoading = spectrumQuery.isLoading && !profile
-  const error = spectrumQuery.isError ? spectrumQuery.error : null
+  const profile = spectrumQuery.data?.profile ?? initialProfile ?? null;
+  const isLoading = spectrumQuery.isLoading && !profile;
+  const error = spectrumQuery.isError ? spectrumQuery.error : null;
 
   return createPortal(
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -64,11 +64,14 @@ export function ObjectVisualizerModal({
               </h2>
             </div>
             {profile && (
-              <p className="mt-1 font-mono text-xs text-text-secondary">
-                {profile.classification} · slope {profile.spectral_slope.toFixed(3)} ·{' '}
-                {input?.pixelX},{input?.pixelY}
-              </p>
-            )}
+  <p className="mt-1 font-mono text-xs text-text-secondary">
+    {profile.candidate_class.replace('_', ' ')} ·{' '}
+    {profile.confidence > 0 && `conf ${(profile.confidence * 100).toFixed(0)}% · `}
+    ratio {profile.color_ratio !== null ? profile.color_ratio.toFixed(3) : 'n/a'}
+    {profile.color_ratio_error !== null && ` ± ${profile.color_ratio_error.toFixed(3)}`} ·{' '}
+    {input?.pixelX},{input?.pixelY}
+  </p>
+)}
           </div>
           <button
             onClick={onClose}
@@ -82,14 +85,14 @@ export function ObjectVisualizerModal({
         {/* Tabs */}
         <div className="flex border-b border-border">
           <TabButton
-            active={tab === '3d'}
-            onClick={() => setTab('3d')}
+            active={tab === "3d"}
+            onClick={() => setTab("3d")}
             icon={Rotate3d}
             label="Vista 3D"
           />
           <TabButton
-            active={tab === 'data'}
-            onClick={() => setTab('data')}
+            active={tab === "data"}
+            onClick={() => setTab("data")}
             icon={Database}
             label="Datos espectrales"
           />
@@ -122,8 +125,10 @@ export function ObjectVisualizerModal({
 
           {profile && !isLoading && (
             <>
-              {tab === '3d' && <View3D profile={profile} />}
-              {tab === 'data' && <DataView spectrum={spectrumQuery.data ?? null} />}
+              {tab === "3d" && <View3D profile={profile} />}
+              {tab === "data" && (
+                <DataView spectrum={spectrumQuery.data ?? null} />
+              )}
             </>
           )}
         </div>
@@ -131,16 +136,17 @@ export function ObjectVisualizerModal({
         {/* Disclaimer */}
         <footer className="border-t border-border bg-background/50 px-5 py-3">
           <p className="font-mono text-[10px] leading-relaxed text-text-secondary/70">
-            <span className="text-accent-amber">ℹ</span> Interpretación visual basada en el
-            micro-espectro SPHEREx + identidad JPL. No es una imagen real del objeto. La
-            clasificación usa la pendiente espectral sobre un rango de ~0.017 μm (un solo
-            detector); para rigor científico se requiere combinar los 6 detectores.
+            <span className="text-accent-amber">ℹ</span> Interpretación visual
+            basada en el micro-espectro SPHEREx + identidad JPL. No es una
+            imagen real del objeto. La clasificación usa la pendiente espectral
+            sobre un rango de ~0.017 μm (un solo detector); para rigor
+            científico se requiere combinar los 6 detectores.
           </p>
         </footer>
       </div>
     </div>,
     document.body,
-  )
+  );
 }
 
 function TabButton({
@@ -149,45 +155,50 @@ function TabButton({
   icon: Icon,
   label,
 }: {
-  active: boolean
-  onClick: () => void
-  icon: typeof Rotate3d
-  label: string
+  active: boolean;
+  onClick: () => void;
+  icon: typeof Rotate3d;
+  label: string;
 }) {
   return (
     <button
       onClick={onClick}
       className={cn(
-        'flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-medium transition-colors',
+        "flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-medium transition-colors",
         active
-          ? 'border-accent-cyan text-accent-cyan'
-          : 'border-transparent text-text-secondary hover:bg-surface-elevated hover:text-text-primary',
+          ? "border-accent-cyan text-accent-cyan"
+          : "border-transparent text-text-secondary hover:bg-surface-elevated hover:text-text-primary",
       )}
     >
       <Icon className="h-4 w-4" />
       {label}
     </button>
-  )
+  );
 }
 
 function View3D({ profile }: { profile: SpherexProfile }) {
   const hints = profile.visual_hints
+  const conf = profile.confidence
 
   return (
-    <div className="h-[420px] w-full">
+    <div className="relative h-[420px] w-full">
+      {/* Badge de confianza */}
+      <div className="absolute top-3 left-3 z-10 rounded-md border border-border bg-surface/90 px-2.5 py-1 font-mono text-xs backdrop-blur">
+        <span className={
+          conf > 0.6 ? 'text-accent-green'
+          : conf > 0.3 ? 'text-accent-amber'
+          : 'text-text-secondary'
+        }>
+          {conf > 0.6 ? '● alta confianza' : conf > 0.3 ? '● media' : '● baja'}
+        </span>
+      </div>
+
       <Scene>
         {hints.suggested_3d_model === 'rocky' && (
-          <RockyBody
-            color={hints.base_color_hex}
-            roughness={hints.roughness}
-            metalness={hints.metalness}
-          />
+          <RockyBody color={hints.base_color_hex} roughness={hints.roughness} metalness={hints.metalness} />
         )}
         {hints.suggested_3d_model === 'star' && (
-          <StarBody
-            color={hints.base_color_hex}
-            emissiveIntensity={hints.emissive_intensity}
-          />
+          <StarBody color={hints.base_color_hex} emissiveIntensity={hints.emissive_intensity} />
         )}
         {hints.suggested_3d_model === 'unknown' && (
           <UnknownBody color={hints.base_color_hex} />
@@ -208,36 +219,78 @@ function DataView({ spectrum }: { spectrum: import('@/lib/types').SpectrumRespon
 
   const { profile } = spectrum
 
+  const fmt = (v: number | null, d = 4) => (v !== null && v !== undefined ? v.toFixed(d) : '—')
+  const fmtExp = (v: number | null) =>
+    v !== null && v !== undefined ? v.toExponential(2) : '—'
+
+  const ratioDisplay =
+    profile.color_ratio !== null
+      ? `${fmt(profile.color_ratio, 3)}${
+          profile.color_ratio_error !== null ? ` ± ${fmt(profile.color_ratio_error, 3)}` : ''
+        }`
+      : '—'
+
+  const confDisplay =
+    profile.confidence > 0 ? `${(profile.confidence * 100).toFixed(0)}%` : 'baja'
+
   return (
     <div className="space-y-4 p-5">
-      {/* Métricas principales */}
+      {/* Fila 1: clasificación y color */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <MetricCard label="Clasificación" value={profile.classification} highlight />
-        <MetricCard label="Slope espectral" value={profile.spectral_slope.toFixed(4)} />
-        <MetricCard label="Color index" value={profile.color_index.toFixed(3)} />
         <MetricCard
-          label="Cobertura λ"
-          value={`${(profile.wavelength_range_um[1] - profile.wavelength_range_um[0]).toFixed(4)} μm`}
+          label="Clase candidata"
+          value={profile.candidate_class.replace('_', ' ')}
+          highlight
         />
+        <MetricCard label="Confianza" value={confDisplay} />
+        <MetricCard label="Ratio F(long/short)" value={ratioDisplay} />
+        <MetricCard label="Color index" value={fmt(profile.color_index, 3)} />
       </div>
 
+      {/* Fila 2: fotometría y cobertura */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <MetricCard label="Flujo total" value={profile.total_flux.toExponential(2)} />
-        <MetricCard label="Píxeles válidos" value={`${(profile.valid_fraction * 100).toFixed(0)}%`} />
-        <MetricCard label="λ min" value={`${profile.wavelength_range_um[0].toFixed(4)} μm`} />
-        <MetricCard label="λ max" value={`${profile.wavelength_range_um[1].toFixed(4)} μm`} />
+        <MetricCard label="Flujo" value={fmtExp(profile.total_flux)} />
+        <MetricCard label="S/N" value={profile.snr !== null ? profile.snr.toFixed(1) : '—'} />
+        <MetricCard label="Puntos λ" value={`${profile.n_spectral_points}`} />
+        <MetricCard label="Rango λ" value={`${profile.wavelength_range_nm.toFixed(1)} nm`} />
       </div>
 
-      {/* Mini-sparkline del espectro */}
+      {/* Aviso de rango insuficiente */}
+      {!profile.reliable && (
+        <div className="rounded-md border border-accent-amber/30 bg-accent-amber/5 p-3">
+          <p className="font-mono text-xs text-accent-amber">
+            ⚠ Rango espectral insuficiente ({profile.wavelength_range_nm.toFixed(1)} nm, mínimo 3 nm).
+            La clasificación requiere combinar los 6 detectores para mayor cobertura.
+          </p>
+        </div>
+      )}
+
+      {/* Reasons */}
+      {profile.reasons.length > 0 && (
+        <div className="rounded-lg border border-border bg-background/40 p-3">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary/70">
+            Razones
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {profile.reasons.map((r) => (
+              <span
+                key={r}
+                className="rounded bg-surface-elevated px-2 py-0.5 font-mono text-xs text-text-secondary"
+              >
+                {r}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sparkline */}
       {spectrum.wavelengths_um.length > 2 && (
         <div className="rounded-lg border border-border bg-background/40 p-4">
           <p className="mb-3 font-mono text-xs uppercase tracking-wider text-text-secondary">
             Micro-espectro ({spectrum.wavelengths_um.length} muestras)
           </p>
-          <Sparkline
-            xs={spectrum.wavelengths_um}
-            ys={spectrum.flux_per_row}
-          />
+          <Sparkline xs={spectrum.wavelengths_um} ys={spectrum.flux_per_row} />
         </div>
       )}
     </div>
@@ -249,9 +302,9 @@ function MetricCard({
   value,
   highlight,
 }: {
-  label: string
-  value: string
-  highlight?: boolean
+  label: string;
+  value: string;
+  highlight?: boolean;
 }) {
   return (
     <div className="rounded-lg border border-border bg-background/40 p-3">
@@ -260,36 +313,36 @@ function MetricCard({
       </p>
       <p
         className={cn(
-          'mt-1 font-mono text-sm font-medium',
-          highlight ? 'text-accent-cyan' : 'text-text-primary',
+          "mt-1 font-mono text-sm font-medium",
+          highlight ? "text-accent-cyan" : "text-text-primary",
         )}
       >
         {value}
       </p>
     </div>
-  )
+  );
 }
 
 function Sparkline({ xs, ys }: { xs: number[]; ys: number[] }) {
-  const W = 600
-  const H = 120
-  const PAD = 8
+  const W = 600;
+  const H = 120;
+  const PAD = 8;
 
-  const xMin = Math.min(...xs)
-  const xMax = Math.max(...xs)
-  const yMax = Math.max(...ys, 1e-9)
-  const yMin = Math.min(...ys, 0)
+  const xMin = Math.min(...xs);
+  const xMax = Math.max(...xs);
+  const yMax = Math.max(...ys, 1e-9);
+  const yMin = Math.min(...ys, 0);
 
-  const xSpan = xMax - xMin || 1
-  const ySpan = yMax - yMin || 1
+  const xSpan = xMax - xMin || 1;
+  const ySpan = yMax - yMin || 1;
 
   const points = xs
     .map((x, i) => {
-      const px = PAD + ((x - xMin) / xSpan) * (W - 2 * PAD)
-      const py = H - PAD - ((ys[i] - yMin) / ySpan) * (H - 2 * PAD)
-      return `${px.toFixed(1)},${py.toFixed(1)}`
+      const px = PAD + ((x - xMin) / xSpan) * (W - 2 * PAD);
+      const py = H - PAD - ((ys[i] - yMin) / ySpan) * (H - 2 * PAD);
+      return `${px.toFixed(1)},${py.toFixed(1)}`;
     })
-    .join(' ')
+    .join(" ");
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="h-32 w-full">
@@ -301,5 +354,5 @@ function Sparkline({ xs, ys }: { xs: number[]; ys: number[] }) {
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }

@@ -376,7 +376,7 @@ export function SectorPage() {
                   <span>Normalización</span>
                 </label>
                 <div className="grid grid-cols-2 gap-1 rounded-md border border-border bg-surface p-1">
-                  {(["per_row", "global"] as const).map((m) => (
+                  {(["global", "per_row"] as const).map((m) => (
                     <button
                       key={m}
                       onClick={() => commitMode(m)}
@@ -411,7 +411,7 @@ export function SectorPage() {
                 </p>
               )}
 
-              {/* Threshold slider */}
+              {/* Threshold slider */}  
               <SliderControl
                 label="Umbral (percentil)"
                 value={threshold}

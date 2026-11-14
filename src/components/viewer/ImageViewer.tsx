@@ -44,9 +44,12 @@ export function ImageViewer({
       // Ignorar clicks fuera del área real de la imagen
       if (relX < 0 || relX > 1 || relY < 0 || relY > 1) return
 
+      const visualY = Math.round(relY * (IMAGE_SIZE - 1))
+      const arrayY = IMAGE_SIZE - 1 - visualY
+
       onImageClick(
         Math.round(relX * IMAGE_SIZE),
-        Math.round(relY * IMAGE_SIZE),
+        arrayY,
         e.clientX,
         e.clientY,
       )
