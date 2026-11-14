@@ -1,31 +1,39 @@
-import { AlertTriangle, Snowflake, Sparkles, Star, HelpCircle } from 'lucide-react'
+import { AlertTriangle, TrendingDown, HelpCircle, TrendingUp, Minus } from 'lucide-react'
 import type { PairClassification } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const STYLES = {
-  ABSORPTION: {
+  STEEP_RED_SED: {
     color: 'text-accent-cyan',
     border: 'border-accent-cyan/40',
     bg: 'bg-accent-cyan/10',
-    Icon: Snowflake,
-    label: 'Absorción',
-    hint: 'Compatible con hielo de agua u otra banda de absorción a 3 μm.',
+    Icon: TrendingDown,
+    label: 'SED rojo pronunciado',
+    hint: 'Caída fuerte del flujo hacia λ largas. Esperado para estrellas calientes. NO es una detección de hielo de agua.',
   },
-  EMISSION: {
-    color: 'text-accent-amber',
-    border: 'border-accent-amber/40',
-    bg: 'bg-accent-amber/10',
-    Icon: Sparkles,
-    label: 'Emisión',
-    hint: 'Flujo mayor a λ larga. Compatible con emisión de polvo caliente.',
+  RED_SED: {
+    color: 'text-accent-cyan/80',
+    border: 'border-accent-cyan/30',
+    bg: 'bg-accent-cyan/5',
+    Icon: TrendingDown,
+    label: 'SED rojo moderado',
+    hint: 'Continuo estelar cálido o fuente enrojecida por polvo.',
   },
-  CONTINUUM: {
+  FLAT_SED: {
     color: 'text-accent-green',
     border: 'border-accent-green/40',
     bg: 'bg-accent-green/10',
-    Icon: Star,
-    label: 'Continuo',
-    hint: 'Ratio plano. Compatible con continuo estelar sin bandas.',
+    Icon: Minus,
+    label: 'SED plano',
+    hint: 'Ratio ≈ 1. Poco común; podría ser mixtura o artefacto.',
+  },
+  RISING_SED: {
+    color: 'text-accent-amber',
+    border: 'border-accent-amber/40',
+    bg: 'bg-accent-amber/10',
+    Icon: TrendingUp,
+    label: 'SED creciente',
+    hint: 'Más flujo a λ largas. Compatible con emisión de polvo caliente o cuerpo frío.',
   },
   NO_SOURCE: {
     color: 'text-text-secondary',

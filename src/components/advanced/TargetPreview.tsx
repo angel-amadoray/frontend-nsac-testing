@@ -7,56 +7,77 @@ interface TargetPreviewProps {
   zoom?: number
 }
 
-/**
- * Mini viewer centrado en (pixelX, pixelY) del composite.
- * Maneja el flip Y del WebP (FITS convention) automáticamente.
- */
 export function TargetPreview({
   compositeUrl,
   pixelX,
   pixelY,
   imageSize = 2040,
-  displaySize = 300,
+  displaySize = 340,
   zoom = 3,
 }: TargetPreviewProps) {
-  // WebP fue flipud → fila 0 del array está abajo
-  const displayY = imageSize - 1 - pixelY
+  // El WebP fue flipud'd: fila 0 del array = fila 2039 del archivo
+  const visualY = imageSize - 1 - pixelY
 
-  const rawLeft = -(pixelX * zoom - displaySize / 2)
-  const rawTop = -(displayY * zoom - displaySize / 2)
-  const minOffset = displaySize - imageSize * zoom
-  const left = Math.max(minOffset, Math.min(0, rawLeft))
-  const top = Math.max(minOffset, Math.min(0, rawTop))
+  const imgW = imageSize * zoom
+  const imgH = imageSize * zoom
 
-  const cx = pixelX * zoom + left
-  const cy = displayY * zoom + top
+  // Posición del target en la imagen completa (en px de la imagen escalada)
+  const targetInImageX = pixelX * zoom
+  const targetInImageY = visualY * zoom
+
+  // Queremos el target en el centro del viewport
+  const rawBgX = displaySize / 2 - targetInImageX
+  const rawBgY = displaySize / 2 - targetInImageY
+
+  // Clamp para no mostrar fuera de la imagen
+  const minBgX = displaySize - imgW
+  const minBgY = displaySize - imgH
+  const bgX = Math.min(0, Math.max(minBgX, rawBgX))
+  const bgY = Math.min(0, Math.max(minBgY, rawBgY))
 
   return (
     <div
       className="relative overflow-hidden rounded-lg border border-border bg-black"
-      style={{ width: displaySize, height: displaySize }}
+      style={{
+        width: displaySize,
+        height: displaySize,
+        backgroundImage: `url(${compositeUrl})`,
+        backgroundSize: `${imgW}px ${imgH}px`,
+        backgroundPosition: `${bgX}px ${bgY}px`,
+        backgroundRepeat: 'no-repeat',
+        imageRendering: 'pixelated',
+      }}
     >
-      <img
-        src={compositeUrl}
-        alt="Target preview"
-        draggable={false}
-        style={{
-          position: 'absolute',
-          left,
-          top,
-          width: imageSize * zoom,
-          height: imageSize * zoom,
-          imageRendering: 'pixelated',
-        }}
-      />
       <svg
         className="pointer-events-none absolute inset-0"
         width={displaySize}
         height={displaySize}
       >
-        <line x1={cx - 18} y1={cy} x2={cx + 18} y2={cy} stroke="hsl(var(--accent-cyan))" strokeWidth={1.5} />
-        <line x1={cx} y1={cy - 18} x2={cx} y2={cy + 18} stroke="hsl(var(--accent-cyan))" strokeWidth={1.5} />
-        <circle cx={cx} cy={cy} r={22} fill="none" stroke="hsl(var(--accent-cyan))" strokeWidth={1} opacity={0.6} />
+        <line
+          x1={displaySize / 2 - 20}
+          y1={displaySize / 2}
+          x2={displaySize / 2 + 20}
+          y2={displaySize / 2}
+          stroke="hsl(var(--accent-cyan))"
+          strokeWidth={1.5}
+        />
+        <line
+          x1={displaySize / 2}
+          y1={displaySize / 2 - 20}
+          x2={displaySize / 2}
+          y2={displaySize / 2 + 20}
+          stroke="hsl(var(--accent-cyan))"
+          strokeWidth={1.5}
+        />
+        <circle
+          cx={displaySize / 2}
+          cy={displaySize / 2}
+          r={24}
+          fill="none"
+          stroke="hsl(var(--accent-cyan))"
+          strokeWidth={1}
+          opacity={0.7}
+        />
       </svg>
     </div>
   )

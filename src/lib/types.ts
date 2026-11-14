@@ -186,10 +186,19 @@ export interface DetectorSample {
   wavelength_range_um: number[]
 }
 
-export type PairClassType =
+/* export type PairClassType =
   | 'ABSORPTION'
   | 'EMISSION'
   | 'CONTINUUM'
+  | 'NO_SOURCE'
+  | 'MASKED'
+  | 'UNDETERMINED' */
+
+export type PairClassType =
+  | 'STEEP_RED_SED'
+  | 'RED_SED'
+  | 'FLAT_SED'
+  | 'RISING_SED'
   | 'NO_SOURCE'
   | 'MASKED'
   | 'UNDETERMINED'
