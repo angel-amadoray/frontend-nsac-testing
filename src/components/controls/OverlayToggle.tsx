@@ -30,7 +30,7 @@ export function OverlayToggle({ enabled, count, isLoading, onChange }: OverlayTo
       >
         <span className="flex items-center gap-2">
           <Sparkles className="h-4 w-4" />
-          {enabled ? 'Overlay activo' : 'Activar overlay'}
+          {enabled ? 'Active overlay' : 'Activate overlay'}
         </span>
         <span className="font-mono text-xs">{count}</span>
       </button>

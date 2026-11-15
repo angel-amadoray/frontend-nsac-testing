@@ -476,9 +476,6 @@ export function SectorPage() {
           onNavigateEpoch={changeEpoch}
         />
 
-        {/* =================================================
-            SECTION 02 — CONFIGURATION SIDEBAR
-            ================================================= */}
 
         {/* =================================================
     SECTION 02 — CONFIGURATION SIDEBAR

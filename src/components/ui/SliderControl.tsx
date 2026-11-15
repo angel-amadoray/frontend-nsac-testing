@@ -1,17 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
-import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useEffect, useRef, useState } from "react";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { GlossaryText } from "@/components/glossary/GlossaryText";
 
 export interface SliderControlProps {
-  label: string
-  value: number
-  min: number
-  max: number
-  step?: number
-  unit?: string
-  description?: string
-  debounceMs?: number
-  formatValue?: (v: number) => string
-  onCommit: (value: number) => void
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  unit?: string;
+  description?: string;
+  debounceMs?: number;
+  formatValue?: (v: number) => string;
+  onCommit: (value: number) => void;
 }
 
 export function SliderControl({
@@ -20,37 +21,37 @@ export function SliderControl({
   min,
   max,
   step = 1,
-  unit = '',
+  unit = "",
   description,
   debounceMs = 600,
   formatValue,
   onCommit,
 }: SliderControlProps) {
-  const [local, setLocal] = useState(value)
-  const debounced = useDebouncedValue(local, debounceMs)
-  const lastCommitted = useRef(value)
+  const [local, setLocal] = useState(value);
+  const debounced = useDebouncedValue(local, debounceMs);
+  const lastCommitted = useRef(value);
 
   // Sincroniza si el valor externo cambia (reset, URL externa, etc.)
   useEffect(() => {
     if (value !== lastCommitted.current) {
-      setLocal(value)
-      lastCommitted.current = value
+      setLocal(value);
+      lastCommitted.current = value;
     }
-  }, [value])
+  }, [value]);
 
   // Commit solo cuando el debounce "se asienta"
   useEffect(() => {
     if (debounced !== lastCommitted.current) {
-      onCommit(debounced)
-      lastCommitted.current = debounced
+      onCommit(debounced);
+      lastCommitted.current = debounced;
     }
-  }, [debounced, onCommit])
+  }, [debounced, onCommit]);
 
   const display = formatValue
     ? formatValue(local)
-    : `${Number.isInteger(local) ? local : local.toFixed(1)}${unit}`
+    : `${Number.isInteger(local) ? local : local.toFixed(1)}${unit}`;
 
-  const progress = ((local - min) / (max - min)) * 100
+  const progress = ((local - min) / (max - min)) * 100;
 
   return (
     <div>
@@ -71,8 +72,10 @@ export function SliderControl({
         }}
       />
       {description && (
-        <p className="mt-1.5 font-mono text-xs text-text-secondary/60">{description}</p>
+        <p className="mt-1.5 font-mono text-xs text-text-secondary/60">
+          <GlossaryText>{description}</GlossaryText>
+        </p>
       )}
     </div>
-  )
+  );
 }

@@ -1,10 +1,20 @@
-import { AlertCircle, Database, Loader2, Rotate3d, X } from "lucide-react";
+
+import {
+  AlertCircle,
+  Database,
+  Loader2,
+  Rotate3d,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+
 import { Scene } from "@/components/three/Scene";
 import { RockyBody } from "@/components/three/RockyBody";
 import { StarBody } from "@/components/three/StarBody";
 import { UnknownBody } from "@/components/three/UnknownBody";
+import { GlossaryText } from "@/components/glossary/GlossaryText";
+
 import { useSpectrum, type SpectrumInput } from "@/hooks/useSpectrum";
 import type { SpectrumResponse, SpherexProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -12,14 +22,19 @@ import { cn } from "@/lib/utils";
 type Tab = "3d" | "data";
 
 interface ObjectVisualizerModalProps {
+  /** Standard source: requests /spectrum using sector/epoch/detector/pixel. */
   open: boolean;
   onClose: () => void;
-  /** Fuente normal: pide a /spectrum usando sector/epoch/detector/pixel. */
   input?: SpectrumInput | null;
-  /** Override: si se pasa, NO se llama a /spectrum, se usa este perfil directo. */
+
+  /** Override: skips /spectrum and uses this profile directly. */
   overrideProfile?: SpherexProfile | null;
-  /** Override del sparkline (para el modo pair: 2 puntos en vez de una curva). */
-  overrideSpectrum?: { wavelengths_um: number[]; flux_per_row: number[] } | null;
+
+  /** Spectrum override, used in pair mode with two points instead of a curve. */
+  overrideSpectrum?: {
+    wavelengths_um: number[];
+    flux_per_row: number[];
+  } | null;
 }
 
 export function ObjectVisualizerModal({
@@ -31,27 +46,41 @@ export function ObjectVisualizerModal({
 }: ObjectVisualizerModalProps) {
   const [tab, setTab] = useState<Tab>("3d");
 
-  // 🆕 Solo consulta /spectrum si NO estamos en modo override
-  const spectrumQuery = useSpectrum(open && !overrideProfile ? input : null);
+  // Request spectrum data only when an override profile is not provided.
+  const spectrumQuery = useSpectrum(
+    open && !overrideProfile ? input : null,
+  );
 
-  // Cerrar con Escape
+  // Close the modal with Escape.
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
     };
+
     document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+
+    return () => {
+      document.removeEventListener("keydown", handler);
+    };
   }, [open, onClose]);
 
   if (!open) return null;
 
-  // 🆕 Prioridad: override > query > null
-  const profile = overrideProfile ?? spectrumQuery.data?.profile ?? null;
-  const isLoading = !overrideProfile && spectrumQuery.isLoading && !profile;
-  const error = !overrideProfile && spectrumQuery.isError ? spectrumQuery.error : null;
+  // Priority: override profile > query result > null.
+  const profile =
+    overrideProfile ?? spectrumQuery.data?.profile ?? null;
 
-  // 🆕 SpectrumResponse: si hay override, construirlo sintético; si no, usar el de la query
+  const isLoading =
+    !overrideProfile && spectrumQuery.isLoading && !profile;
+
+  const error =
+    !overrideProfile && spectrumQuery.isError
+      ? spectrumQuery.error
+      : null;
+
+  // Build a synthetic response when an override profile is provided.
   const spectrumData: SpectrumResponse | null = overrideProfile
     ? {
         sector_id: "",
@@ -65,117 +94,172 @@ export function ObjectVisualizerModal({
       }
     : spectrumQuery.data ?? null;
 
-  // 🆕 Texto del header según el modo
+  // Header information depends on the current visualization mode.
   const headerDetail = (() => {
     if (!profile) return null;
-    const parts: string[] = [profile.candidate_class.replace("_", " ")];
+
+    const parts: string[] = [
+      profile.candidate_class.replace(/_/g, " "),
+    ];
+
     if (profile.confidence > 0) {
-      parts.push(`conf ${(profile.confidence * 100).toFixed(0)}%`);
+      parts.push(`${(profile.confidence * 100).toFixed(0)}% confidence`);
     }
+
     if (profile.color_ratio !== null) {
       const ratio = profile.color_ratio.toFixed(3);
-      const err =
+
+      const error =
         profile.color_ratio_error !== null
           ? ` ± ${profile.color_ratio_error.toFixed(3)}`
           : "";
-      parts.push(`ratio ${ratio}${err}`);
+
+      parts.push(`Ratio ${ratio}${error}`);
     }
+
     if (input?.pixelX != null && input?.pixelY != null) {
-      parts.push(`${input.pixelX},${input.pixelY}`);
+      parts.push(`Pixel ${input.pixelX}, ${input.pixelY}`);
     }
+
     return parts.join(" · ");
   })();
 
   return createPortal(
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6"
+      role="presentation"
+    >
+      <button
+        type="button"
+        aria-label="Close object visualizer"
+        className="absolute inset-0 cursor-default bg-black/85 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
-        <header className="flex items-start justify-between gap-4 border-b border-border p-5">
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="object-visualizer-title"
+        className="relative z-10 flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden border border-border bg-surface shadow-2xl"
+      >
+        {/* Header */}
+        <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4 sm:px-6">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <Rotate3d className="h-5 w-5 text-accent-cyan" />
-              <h2 className="font-display text-lg font-semibold">
-                Visualización del objeto
+            <div className="flex items-center gap-3">
+              <Rotate3d className="h-5 w-5 shrink-0 text-accent-cyan" />
+
+              <h2
+                id="object-visualizer-title"
+                className="font-sans text-lg font-semibold tracking-tight text-text-primary"
+              >
+                Object Visualization
               </h2>
             </div>
+
             {headerDetail && (
-              <p className="mt-1 font-mono text-xs text-text-secondary">
+              <p className="mt-2 font-mono text-[10px] leading-relaxed tracking-wide text-text-secondary sm:text-xs">
                 {headerDetail}
               </p>
             )}
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="shrink-0 rounded-md border border-border bg-surface-elevated p-1.5 text-text-secondary transition-colors hover:border-danger/40 hover:text-danger"
-            aria-label="Cerrar"
+            aria-label="Close"
+            className="shrink-0 border border-border bg-surface-elevated p-2 text-text-secondary transition-colors hover:border-accent-cyan/50 hover:text-accent-cyan"
           >
             <X className="h-4 w-4" />
           </button>
         </header>
 
-        <div className="flex border-b border-border">
+        {/* Tabs */}
+        <nav
+          className="flex border-b border-border"
+          aria-label="Visualization modes"
+        >
           <TabButton
             active={tab === "3d"}
             onClick={() => setTab("3d")}
             icon={Rotate3d}
-            label="Vista 3D"
+            label="3D VIEW"
           />
+
           <TabButton
             active={tab === "data"}
             onClick={() => setTab("data")}
             icon={Database}
-            label="Datos espectrales"
+            label="SPECTRAL DATA"
           />
-        </div>
+        </nav>
 
-        <div className="flex-1 overflow-y-auto">
+        {/* Main content */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {isLoading && (
-            <div className="flex h-[420px] items-center justify-center">
-              <div className="flex flex-col items-center gap-3">
+            <div className="flex h-[420px] items-center justify-center px-6">
+              <div className="flex flex-col items-center gap-4 text-center">
                 <Loader2 className="h-8 w-8 animate-spin text-accent-cyan" />
-                <p className="font-mono text-xs text-text-secondary">
-                  Extrayendo micro-espectro del píxel…
-                </p>
+
+                <div>
+                  <p className="font-sans text-sm font-medium text-text-primary">
+                    Retrieving spectral data
+                  </p>
+
+                  <p className="mt-1 font-mono text-[10px] text-text-secondary">
+                    Extracting the pixel micro-spectrum...
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
           {error && !isLoading && (
-            <div className="flex h-[420px] flex-col items-center justify-center gap-3 p-8 text-center">
+            <div className="flex h-[420px] flex-col items-center justify-center gap-4 p-8 text-center">
               <AlertCircle className="h-8 w-8 text-danger" />
-              <p className="font-display text-sm font-medium">
-                No se pudo cargar el espectro
-              </p>
-              <p className="max-w-md font-mono text-xs text-text-secondary">
-                {error.message}
-              </p>
+
+              <div>
+                <p className="font-sans text-sm font-semibold text-text-primary">
+                  Unable to load spectrum
+                </p>
+
+                <p className="mt-2 max-w-md font-mono text-xs leading-relaxed text-text-secondary">
+                  {error.message}
+                </p>
+              </div>
             </div>
           )}
 
           {profile && !isLoading && (
             <>
               {tab === "3d" && <View3D profile={profile} />}
-              {/* 🆕 Pasar spectrumData (que respeta override), no spectrumQuery.data */}
-              {tab === "data" && <DataView spectrum={spectrumData} />}
+
+              {tab === "data" && (
+                <DataView spectrum={spectrumData} />
+              )}
             </>
           )}
         </div>
 
-        {/* 🆕 Disclaimer dinámico según el modo */}
-        <footer className="border-t border-border bg-background/50 px-5 py-3">
-          <p className="font-mono text-[10px] leading-relaxed text-text-secondary/70">
-            <span className="text-accent-amber">ℹ</span>{" "}
-            {overrideProfile
-              ? "Análisis de 2 bandas (par de detectores del mismo telescopio SPHEREx). La clasificación es un candidato estadístico, no una identificación."
-              : "Interpretación visual basada en el micro-espectro SPHEREx. La clasificación usa la pendiente sobre un rango de ~0.017 μm (un solo detector)."}{" "}
-            Para rigor científico completo se requieren los 6 detectores combinados.
-          </p>
+        {/* Scientific disclaimer */}
+        <footer className="border-t border-border bg-background/40 px-5 py-4 sm:px-6">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 font-mono text-xs text-accent-cyan">
+              INFO
+            </span>
+
+            <p className="font-sans text-[11px] leading-relaxed text-text-secondary">
+              <GlossaryText>
+                {overrideProfile
+                  ? "Two-band analysis using a pair of detectors from the same SPHEREx telescope. The classification is a statistical candidate, not a confirmed identification."
+                  : "Visual interpretation based on the SPHEREx pixel micro-spectrum. Classification uses the spectral slope across an approximately 0.017 μm range from a single detector."}
+              </GlossaryText>{" "}
+              <GlossaryText>
+                Full scientific coverage requires combining data from all six detectors.
+              </GlossaryText>
+            </p>
+          </div>
         </footer>
-      </div>
+      </section>
     </div>,
     document.body,
   );
@@ -194,11 +278,13 @@ function TabButton({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        "flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-medium transition-colors",
+        "flex items-center gap-2 border-b-2 px-5 py-3 font-sans text-[10px] font-semibold tracking-wider transition-colors",
         active
-          ? "border-accent-cyan text-accent-cyan"
+          ? "border-accent-cyan bg-accent-cyan/5 text-accent-cyan"
           : "border-transparent text-text-secondary hover:bg-surface-elevated hover:text-text-primary",
       )}
     >
@@ -210,21 +296,32 @@ function TabButton({
 
 function View3D({ profile }: { profile: SpherexProfile }) {
   const hints = profile.visual_hints;
-  const conf = profile.confidence;
+  const confidence = profile.confidence;
+
+  const confidenceLabel =
+    confidence > 0.6
+      ? "HIGH CONFIDENCE"
+      : confidence > 0.3
+        ? "MEDIUM CONFIDENCE"
+        : "LOW CONFIDENCE";
+
+  const confidenceColor =
+    confidence > 0.6
+      ? "text-accent-green"
+      : confidence > 0.3
+        ? "text-accent-amber"
+        : "text-text-secondary";
 
   return (
-    <div className="relative h-[420px] w-full">
-      <div className="absolute top-3 left-3 z-10 rounded-md border border-border bg-surface/90 px-2.5 py-1 font-mono text-xs backdrop-blur">
+    <div className="relative h-[420px] w-full bg-background/30">
+      <div className="absolute left-4 top-4 z-10 border border-border bg-surface/90 px-3 py-2 backdrop-blur">
         <span
-          className={
-            conf > 0.6
-              ? "text-accent-green"
-              : conf > 0.3
-                ? "text-accent-amber"
-                : "text-text-secondary"
-          }
+          className={cn(
+            "font-mono text-[9px] tracking-wider",
+            confidenceColor,
+          )}
         >
-          {conf > 0.6 ? "● alta confianza" : conf > 0.3 ? "● media" : "● baja"}
+          ● {confidenceLabel}
         </span>
       </div>
 
@@ -236,12 +333,14 @@ function View3D({ profile }: { profile: SpherexProfile }) {
             metalness={hints.metalness}
           />
         )}
+
         {hints.suggested_3d_model === "star" && (
           <StarBody
             color={hints.base_color_hex}
             emissiveIntensity={hints.emissive_intensity}
           />
         )}
+
         {hints.suggested_3d_model === "unknown" && (
           <UnknownBody color={hints.base_color_hex} />
         )}
@@ -250,21 +349,32 @@ function View3D({ profile }: { profile: SpherexProfile }) {
   );
 }
 
-function DataView({ spectrum }: { spectrum: SpectrumResponse | null }) {
+function DataView({
+  spectrum,
+}: {
+  spectrum: SpectrumResponse | null;
+}) {
   if (!spectrum) {
     return (
-      <div className="p-6 text-center text-sm text-text-secondary">
-        Datos del espectro no disponibles.
+      <div className="p-10 text-center">
+        <p className="font-sans text-sm text-text-secondary">
+          Spectral data is not available.
+        </p>
       </div>
     );
   }
 
   const { profile } = spectrum;
 
-  const fmt = (v: number | null, d = 4) =>
-    v !== null && v !== undefined ? v.toFixed(d) : "—";
-  const fmtExp = (v: number | null) =>
-    v !== null && v !== undefined ? v.toExponential(2) : "—";
+  const fmt = (value: number | null, decimals = 4) =>
+    value !== null && value !== undefined
+      ? value.toFixed(decimals)
+      : "—";
+
+  const fmtExp = (value: number | null) =>
+    value !== null && value !== undefined
+      ? value.toExponential(2)
+      : "—";
 
   const ratioDisplay =
     profile.color_ratio !== null
@@ -275,75 +385,164 @@ function DataView({ spectrum }: { spectrum: SpectrumResponse | null }) {
         }`
       : "—";
 
-  const confDisplay =
+  const confidenceDisplay =
     profile.confidence > 0
       ? `${(profile.confidence * 100).toFixed(0)}%`
-      : "baja";
+      : "Low";
 
   return (
-    <div className="space-y-4 p-5">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <MetricCard
-          label="Clase candidata"
-          value={profile.candidate_class.replace("_", " ")}
-          highlight
-        />
-        <MetricCard label="Confianza" value={confDisplay} />
-        <MetricCard label="Ratio F(long/short)" value={ratioDisplay} />
-        <MetricCard label="Color index" value={fmt(profile.color_index, 3)} />
-      </div>
+    <div className="space-y-6 p-5 sm:p-6">
+      {/* Classification metrics */}
+      <section>
+        <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
+          <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-text-primary">
+            Classification Overview
+          </h3>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <MetricCard label="Flujo" value={fmtExp(profile.total_flux)} />
-        <MetricCard
-          label="S/N"
-          value={profile.snr !== null ? profile.snr.toFixed(1) : "—"}
-        />
-        <MetricCard label="Puntos λ" value={`${profile.n_spectral_points}`} />
-        <MetricCard
-          label="Rango λ"
-          value={`${profile.wavelength_range_nm.toFixed(1)} nm`}
-        />
-      </div>
-
-      {!profile.reliable && (
-        <div className="rounded-md border border-accent-amber/30 bg-accent-amber/5 p-3">
-          <p className="font-mono text-xs text-accent-amber">
-            ⚠ Rango espectral insuficiente (
-            {profile.wavelength_range_nm.toFixed(1)} nm, mínimo 3 nm). La
-            clasificación requiere combinar los 6 detectores para mayor
-            cobertura.
-          </p>
+          <span className="font-mono text-[9px] text-text-secondary">
+            01 / PROFILE
+          </span>
         </div>
+
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          <MetricCard
+            label="Candidate Class"
+            value={profile.candidate_class.replace(/_/g, " ")}
+            highlight
+          />
+
+          <MetricCard
+            label="Confidence"
+            value={confidenceDisplay}
+          />
+
+          <MetricCard
+            label="Flux Ratio (Long/Short)"
+            value={ratioDisplay}
+          />
+
+          <MetricCard
+            label="Color Index"
+            value={fmt(profile.color_index, 3)}
+          />
+        </div>
+      </section>
+
+      {/* Spectral measurements */}
+      <section>
+        <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
+          <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-text-primary">
+            Spectral Measurements
+          </h3>
+
+          <span className="font-mono text-[9px] text-text-secondary">
+            02 / MEASUREMENTS
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          <MetricCard
+            label="Total Flux"
+            value={fmtExp(profile.total_flux)}
+          />
+
+          <MetricCard
+            label="Signal-to-Noise"
+            value={
+              profile.snr !== null
+                ? profile.snr.toFixed(1)
+                : "—"
+            }
+          />
+
+          <MetricCard
+            label="Spectral Points"
+            value={`${profile.n_spectral_points}`}
+          />
+
+          <MetricCard
+            label="Wavelength Range"
+            value={`${profile.wavelength_range_nm.toFixed(1)} nm`}
+          />
+        </div>
+      </section>
+
+      {/* Reliability warning */}
+      {!profile.reliable && (
+        <section className="border border-accent-amber/30 bg-accent-amber/5 p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent-amber" />
+
+            <div>
+              <h3 className="font-sans text-xs font-semibold text-accent-amber">
+                Limited Spectral Coverage
+              </h3>
+
+              <p className="mt-1 font-sans text-xs leading-relaxed text-text-secondary">
+                <GlossaryText>
+                  The available spectral range is insufficient</GlossaryText> (
+                  {profile.wavelength_range_nm.toFixed(1)} nm; minimum 3 nm).
+                  <GlossaryText>Combining data from all six detectors is required for broader
+                  spectral coverage and a more reliable classification.
+                </GlossaryText>
+              </p>
+            </div>
+          </div>
+        </section>
       )}
 
+      {/* Algorithm reasons */}
       {profile.reasons.length > 0 && (
-        <div className="rounded-lg border border-border bg-background/40 p-3">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary/70">
-            Razones
-          </p>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">
-            {profile.reasons.map((r) => (
+        <section>
+          <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
+            <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-text-primary">
+              Classification Factors
+            </h3>
+
+            <span className="font-mono text-[9px] text-text-secondary">
+              03 / ANALYSIS
+            </span>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {profile.reasons.map((reason) => (
               <span
-                key={r}
-                className="rounded bg-surface-elevated px-2 py-0.5 font-mono text-xs text-text-secondary"
+                key={reason}
+                className="border border-border bg-surface-elevated px-3 py-1.5 font-mono text-[10px] text-text-secondary"
               >
-                {r}
+                <GlossaryText>{reason}</GlossaryText>
               </span>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
+      {/* Spectrum chart */}
       {spectrum.wavelengths_um.length > 0 && (
-        <div className="rounded-lg border border-border bg-background/40 p-4">
-          <p className="mb-3 font-mono text-xs uppercase tracking-wider text-text-secondary">
-            {spectrum.wavelengths_um.length > 2
-              ? `Micro-espectro (${spectrum.wavelengths_um.length} muestras)`
-              : `Puntos espectrales (${spectrum.wavelengths_um.length})`}
-          </p>
-          <Sparkline xs={spectrum.wavelengths_um} ys={spectrum.flux_per_row} />
-        </div>
+        <section className="border border-border bg-background/30 p-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+            <div>
+              <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-text-primary">
+                Spectral Profile
+              </h3>
+
+              <p className="mt-1 font-mono text-[9px] text-text-secondary">
+                {spectrum.wavelengths_um.length > 2
+                  ? `MICRO-SPECTRUM / ${spectrum.wavelengths_um.length} SAMPLES`
+                  : `SPECTRAL POINTS / ${spectrum.wavelengths_um.length}`}
+              </p>
+            </div>
+
+            <span className="font-mono text-[9px] text-accent-cyan">
+              WAVELENGTH (μm)
+            </span>
+          </div>
+
+          <Sparkline
+            xs={spectrum.wavelengths_um}
+            ys={spectrum.flux_per_row}
+          />
+        </section>
       )}
     </div>
   );
@@ -359,13 +558,14 @@ function MetricCard({
   highlight?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-background/40 p-3">
-      <p className="font-mono text-[10px] uppercase tracking-wider text-text-secondary/70">
+    <div className="min-w-0 border border-border bg-background/40 p-3">
+      <p className="font-mono text-[9px] uppercase tracking-wider text-text-secondary/70">
         {label}
       </p>
+
       <p
         className={cn(
-          "mt-1 font-mono text-sm font-medium",
+          "mt-2 break-words font-mono text-sm font-medium",
           highlight ? "text-accent-cyan" : "text-text-primary",
         )}
       >
@@ -375,53 +575,97 @@ function MetricCard({
   );
 }
 
-function Sparkline({ xs, ys }: { xs: number[]; ys: number[] }) {
+function Sparkline({
+  xs,
+  ys,
+}: {
+  xs: number[];
+  ys: number[];
+}) {
   const W = 600;
   const H = 120;
   const PAD = 8;
 
-  const xMin = Math.min(...xs);
-  const xMax = Math.max(...xs);
-  const yMax = Math.max(...ys, 1e-9);
-  const yMin = Math.min(...ys, 0);
+  const pointCount = Math.min(xs.length, ys.length);
+
+  if (pointCount === 0) return null;
+
+  const validPoints = xs
+    .slice(0, pointCount)
+    .map((x, index) => ({
+      x,
+      y: ys[index],
+    }))
+    .filter(
+      (point) =>
+        Number.isFinite(point.x) &&
+        Number.isFinite(point.y),
+    );
+
+  if (validPoints.length === 0) return null;
+
+  const xValues = validPoints.map((point) => point.x);
+  const yValues = validPoints.map((point) => point.y);
+
+  const xMin = Math.min(...xValues);
+  const xMax = Math.max(...xValues);
+  const yMax = Math.max(...yValues, 1e-9);
+  const yMin = Math.min(...yValues, 0);
 
   const xSpan = xMax - xMin || 1;
   const ySpan = yMax - yMin || 1;
 
-  const points = xs
-    .map((x, i) => {
-      const px = PAD + ((x - xMin) / xSpan) * (W - 2 * PAD);
-      const py = H - PAD - ((ys[i] - yMin) / ySpan) * (H - 2 * PAD);
-      return `${px.toFixed(1)},${py.toFixed(1)}`;
-    })
+  const getX = (x: number) =>
+    PAD + ((x - xMin) / xSpan) * (W - 2 * PAD);
+
+  const getY = (y: number) =>
+    H - PAD - ((y - yMin) / ySpan) * (H - 2 * PAD);
+
+  const points = validPoints
+    .map(
+      ({ x, y }) =>
+        `${getX(x).toFixed(1)},${getY(y).toFixed(1)}`,
+    )
     .join(" ");
 
-  // 🆕 Puntos visibles si son pocos (modo pair = 2 puntos)
-  const showDots = xs.length <= 6;
+  const showDots = validPoints.length <= 6;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-32 w-full">
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="h-32 w-full overflow-visible"
+      role="img"
+      aria-label="Spectral profile chart"
+    >
+      <line
+        x1={PAD}
+        y1={H - PAD}
+        x2={W - PAD}
+        y2={H - PAD}
+        stroke="currentColor"
+        strokeOpacity="0.2"
+        strokeWidth="1"
+      />
+
       <polyline
         points={points}
         fill="none"
         stroke="hsl(var(--accent-cyan))"
-        strokeWidth={1.5}
+        strokeWidth={1.8}
         strokeLinejoin="round"
+        strokeLinecap="round"
       />
+
       {showDots &&
-        xs.map((x, i) => {
-          const px = PAD + ((x - xMin) / xSpan) * (W - 2 * PAD);
-          const py = H - PAD - ((ys[i] - yMin) / ySpan) * (H - 2 * PAD);
-          return (
-            <circle
-              key={i}
-              cx={px}
-              cy={py}
-              r={4}
-              fill="hsl(var(--accent-cyan))"
-            />
-          );
-        })}
+        validPoints.map(({ x, y }, index) => (
+          <circle
+            key={index}
+            cx={getX(x)}
+            cy={getY(y)}
+            r={3.5}
+            fill="hsl(var(--accent-cyan))"
+          />
+        ))}
     </svg>
   );
 }
