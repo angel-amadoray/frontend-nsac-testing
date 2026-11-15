@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   BookOpen,
   Cloud,
@@ -18,7 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b border-white/15 bg-[#21212c] px-6 py-5 text-white sm:px-10">
+      <header className="border-b border-white/15 bg-[#21212c] px-4 py-5 text-white sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-5">
           <Link
             to="/"
@@ -38,29 +38,46 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
           </Link>
 
-          <nav aria-label="Navegación principal" className="hidden lg:block">
-            <ul className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-white/80">
+          <nav aria-label="Navegación principal" className="ml-auto hidden lg:block">
+            <ul className="flex flex-wrap items-center justify-end gap-x-5 gap-y-3 text-sm text-white/80">
               <li>
-                <button
-                  type="button"
-                  onClick={() => setIsGlossaryOpen(true)}
-                  className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                <NavLink
+                  to="/sector/orion_nebula"
+                  className={({ isActive }) =>
+                    `transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white ${
+                      isActive ? "font-semibold text-white underline decoration-2 underline-offset-4" : ""
+                    }`
+                  }
                 >
-                  <BookOpen className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Glossary of Terms
-                </button>
+                  <Telescope className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
+                  Orion Nebula (M42)
+                </NavLink>
               </li>
-
               <li>
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href="https://www.spaceappschallenge.org/2026/find-a-team/tlon-9/"
-                  className="underline decoration-white/40 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                <NavLink
+                  to="/sector/galactic_center"
+                  className={({ isActive }) =>
+                    `transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white ${
+                      isActive ? "font-semibold text-white underline decoration-2 underline-offset-4" : ""
+                    }`
+                  }
                 >
-                  <ExternalLink className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Team Challenge — Tlön 9
-                </a>
+                  <Orbit className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
+                  Galactic Center
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/sector/rho_ophiuchi"
+                  className={({ isActive }) =>
+                    `transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white ${
+                      isActive ? "font-semibold text-white underline decoration-2 underline-offset-4" : ""
+                    }`
+                  }
+                >
+                  <Cloud className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
+                  Rho Ophiuchi Complex
+                </NavLink>
               </li>
             </ul>
           </nav>
@@ -134,59 +151,46 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <ul className="flex flex-col gap-6 text-base text-white/85">
               <li>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsGlossaryOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                >
-                  <BookOpen className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Glossary of Terms
-                </button>
-              </li>
-              <li>
-                <Link
+                <NavLink
                   to="/sector/orion_nebula"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                  className={({ isActive }) =>
+                    `transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white ${
+                      isActive ? "font-semibold text-white underline decoration-2 underline-offset-4" : ""
+                    }`
+                  }
                 >
                   <Telescope className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Orion Nebula (M42)
-                </Link>
+                </NavLink>
               </li>
               <li>
-                <Link
+                <NavLink
                   to="/sector/galactic_center"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                  className={({ isActive }) =>
+                    `transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white ${
+                      isActive ? "font-semibold text-white underline decoration-2 underline-offset-4" : ""
+                    }`
+                  }
                 >
                   <Orbit className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Galactic Center
-                </Link>
+                </NavLink>
               </li>
               <li>
-                <Link
+                <NavLink
                   to="/sector/rho_ophiuchi"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                  className={({ isActive }) =>
+                    `transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white ${
+                      isActive ? "font-semibold text-white underline decoration-2 underline-offset-4" : ""
+                    }`
+                  }
                 >
                   <Cloud className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Rho Ophiuchi Complex
-                </Link>
-              </li>
-              <li>
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href="https://www.spaceappschallenge.org/2026/find-a-team/tlon-9/"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="underline decoration-white/40 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                >
-                  <ExternalLink className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Team Challenge — Tlön 9
-                </a>
+                </NavLink>
               </li>
             </ul>
           </nav>
@@ -194,7 +198,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t border-white/15 bg-[#21212c] px-6 py-10 text-white sm:px-10">
+      <footer className="border-t border-white/15 bg-[#21212c] px-4 py-10 text-white sm:px-6">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap');
         `}</style>
@@ -219,8 +223,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
           </a>
 
-          <nav aria-label="Enlaces del pie de página" className="w-full md:w-auto">
-            <ul className="flex flex-col gap-4 text-sm text-white/80 sm:flex-row sm:flex-wrap sm:gap-x-7">
+          <nav aria-label="Enlaces del pie de página" className="w-full md:ml-auto md:w-auto">
+            <ul className="flex flex-col gap-4 text-sm text-white/80 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-x-7">
               <li>
                 <button
                   type="button"
@@ -233,33 +237,15 @@ export function AppShell({ children }: { children: ReactNode }) {
               </li>
 
               <li>
-                <Link
-                  to="/sector/orion_nebula"
-                  className="text-white/80 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="https://www.spaceappschallenge.org/2026/find-a-team/tlon-9/"
+                  className="underline decoration-white/40 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
-                  <Telescope className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Orion Nebula (M42)
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/sector/galactic_center"
-                  className="text-white/80 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                >
-                  <Orbit className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Galactic Center
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/sector/rho_ophiuchi"
-                  className="text-white/80 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                >
-                  <Cloud className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Rho Ophiuchi Complex
-                </Link>
+                  <ExternalLink className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
+                  Team Challenge — Tlön 9
+                </a>
               </li>
 
               <li>
