@@ -10,7 +10,7 @@ const sectors = [
     description: "Massive star-forming region.",
     ra: "05:37:43.2",
     dec: "−06° 54′ 36″",
-    epochs: ["2025-09", "2025-09b"],
+    epochs: ["2025-09", "2025-09b", "2026-06", "2026-06b", "2026-06c"],
     image: "/images/orion.jpg",
   },
   {

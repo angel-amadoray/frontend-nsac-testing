@@ -1,4 +1,3 @@
-
 import {
   AlertCircle,
   Database,
@@ -46,12 +45,10 @@ export function ObjectVisualizerModal({
 }: ObjectVisualizerModalProps) {
   const [tab, setTab] = useState<Tab>("3d");
 
-  // Request spectrum data only when an override profile is not provided.
   const spectrumQuery = useSpectrum(
     open && !overrideProfile ? input : null,
   );
 
-  // Close the modal with Escape.
   useEffect(() => {
     if (!open) return;
 
@@ -68,7 +65,6 @@ export function ObjectVisualizerModal({
 
   if (!open) return null;
 
-  // Priority: override profile > query result > null.
   const profile =
     overrideProfile ?? spectrumQuery.data?.profile ?? null;
 
@@ -80,7 +76,6 @@ export function ObjectVisualizerModal({
       ? spectrumQuery.error
       : null;
 
-  // Build a synthetic response when an override profile is provided.
   const spectrumData: SpectrumResponse | null = overrideProfile
     ? {
         sector_id: "",
@@ -94,7 +89,6 @@ export function ObjectVisualizerModal({
       }
     : spectrumQuery.data ?? null;
 
-  // Header information depends on the current visualization mode.
   const headerDetail = (() => {
     if (!profile) return null;
 
@@ -140,24 +134,24 @@ export function ObjectVisualizerModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="object-visualizer-title"
-        className="relative z-10 flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden border border-border bg-surface shadow-2xl"
+        className="relative z-10 flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden border border-white/10 bg-[#0B0B0B] text-white shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
       >
         {/* Header */}
-        <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4 sm:px-6">
+        <header className="flex items-start justify-between gap-4 border-b border-white/10 bg-[#0B0B0B] px-5 py-4 sm:px-6">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3">
-              <Rotate3d className="h-5 w-5 shrink-0 text-accent-cyan" />
+              <Rotate3d className="h-5 w-5 shrink-0 text-cyan-300" />
 
               <h2
                 id="object-visualizer-title"
-                className="font-sans text-lg font-semibold tracking-tight text-text-primary"
+                className="font-sans text-lg font-semibold tracking-tight text-white"
               >
                 Object Visualization
               </h2>
             </div>
 
             {headerDetail && (
-              <p className="mt-2 font-mono text-[10px] leading-relaxed tracking-wide text-text-secondary sm:text-xs">
+              <p className="mt-2 font-mono text-[10px] leading-relaxed tracking-wide text-white/45 sm:text-xs">
                 {headerDetail}
               </p>
             )}
@@ -167,7 +161,7 @@ export function ObjectVisualizerModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="shrink-0 border border-border bg-surface-elevated p-2 text-text-secondary transition-colors hover:border-accent-cyan/50 hover:text-accent-cyan"
+            className="shrink-0 border border-white/10 bg-white/[0.03] p-2 text-white/50 transition-colors hover:border-cyan-400/40 hover:bg-cyan-400/5 hover:text-cyan-300"
           >
             <X className="h-4 w-4" />
           </button>
@@ -175,7 +169,7 @@ export function ObjectVisualizerModal({
 
         {/* Tabs */}
         <nav
-          className="flex border-b border-border"
+          className="flex border-b border-white/10 bg-[#0B0B0B]"
           aria-label="Visualization modes"
         >
           <TabButton
@@ -194,18 +188,18 @@ export function ObjectVisualizerModal({
         </nav>
 
         {/* Main content */}
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[#0B0B0B]">
           {isLoading && (
             <div className="flex h-[420px] items-center justify-center px-6">
               <div className="flex flex-col items-center gap-4 text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-accent-cyan" />
+                <Loader2 className="h-8 w-8 animate-spin text-cyan-300" />
 
                 <div>
-                  <p className="font-sans text-sm font-medium text-text-primary">
+                  <p className="font-sans text-sm font-medium text-white/85">
                     Retrieving spectral data
                   </p>
 
-                  <p className="mt-1 font-mono text-[10px] text-text-secondary">
+                  <p className="mt-1 font-mono text-[10px] text-white/40">
                     Extracting the pixel micro-spectrum...
                   </p>
                 </div>
@@ -215,14 +209,14 @@ export function ObjectVisualizerModal({
 
           {error && !isLoading && (
             <div className="flex h-[420px] flex-col items-center justify-center gap-4 p-8 text-center">
-              <AlertCircle className="h-8 w-8 text-danger" />
+              <AlertCircle className="h-8 w-8 text-red-400" />
 
               <div>
-                <p className="font-sans text-sm font-semibold text-text-primary">
+                <p className="font-sans text-sm font-semibold text-white/85">
                   Unable to load spectrum
                 </p>
 
-                <p className="mt-2 max-w-md font-mono text-xs leading-relaxed text-text-secondary">
+                <p className="mt-2 max-w-md font-mono text-xs leading-relaxed text-white/45">
                   {error.message}
                 </p>
               </div>
@@ -241,13 +235,13 @@ export function ObjectVisualizerModal({
         </div>
 
         {/* Scientific disclaimer */}
-        <footer className="border-t border-border bg-background/40 px-5 py-4 sm:px-6">
+        <footer className="border-t border-white/10 bg-[#0D0D0D] px-5 py-4 sm:px-6">
           <div className="flex items-start gap-3">
-            <span className="mt-0.5 font-mono text-xs text-accent-cyan">
+            <span className="mt-0.5 font-mono text-[10px] font-semibold tracking-wider text-cyan-300">
               INFO
             </span>
 
-            <p className="font-sans text-[11px] leading-relaxed text-text-secondary">
+            <p className="font-sans text-[11px] leading-relaxed text-white/45">
               <GlossaryText>
                 {overrideProfile
                   ? "Two-band analysis using a pair of detectors from the same SPHEREx telescope. The classification is a statistical candidate, not a confirmed identification."
@@ -284,8 +278,8 @@ function TabButton({
       className={cn(
         "flex items-center gap-2 border-b-2 px-5 py-3 font-sans text-[10px] font-semibold tracking-wider transition-colors",
         active
-          ? "border-accent-cyan bg-accent-cyan/5 text-accent-cyan"
-          : "border-transparent text-text-secondary hover:bg-surface-elevated hover:text-text-primary",
+          ? "border-cyan-400 bg-cyan-400/[0.06] text-cyan-300"
+          : "border-transparent text-white/40 hover:bg-white/[0.03] hover:text-white/80",
       )}
     >
       <Icon className="h-4 w-4" />
@@ -307,14 +301,14 @@ function View3D({ profile }: { profile: SpherexProfile }) {
 
   const confidenceColor =
     confidence > 0.6
-      ? "text-accent-green"
+      ? "text-emerald-400"
       : confidence > 0.3
-        ? "text-accent-amber"
-        : "text-text-secondary";
+        ? "text-amber-300"
+        : "text-white/45";
 
   return (
-    <div className="relative h-[420px] w-full bg-background/30">
-      <div className="absolute left-4 top-4 z-10 border border-border bg-surface/90 px-3 py-2 backdrop-blur">
+    <div className="relative h-[420px] w-full bg-[#0B0B0B]">
+      <div className="absolute left-4 top-4 z-10 border border-white/10 bg-[#111111]/95 px-3 py-2 backdrop-blur">
         <span
           className={cn(
             "font-mono text-[9px] tracking-wider",
@@ -357,7 +351,7 @@ function DataView({
   if (!spectrum) {
     return (
       <div className="p-10 text-center">
-        <p className="font-sans text-sm text-text-secondary">
+        <p className="font-sans text-sm text-white/45">
           Spectral data is not available.
         </p>
       </div>
@@ -391,15 +385,15 @@ function DataView({
       : "Low";
 
   return (
-    <div className="space-y-6 p-5 sm:p-6">
+    <div className="space-y-6 bg-[#0B0B0B] p-5 sm:p-6">
       {/* Classification metrics */}
       <section>
-        <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
-          <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-text-primary">
+        <div className="mb-3 flex items-center justify-between border-b border-white/10 pb-2">
+          <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-white/85">
             Classification Overview
           </h3>
 
-          <span className="font-mono text-[9px] text-text-secondary">
+          <span className="font-mono text-[9px] tracking-wider text-white/35">
             01 / PROFILE
           </span>
         </div>
@@ -430,12 +424,12 @@ function DataView({
 
       {/* Spectral measurements */}
       <section>
-        <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
-          <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-text-primary">
+        <div className="mb-3 flex items-center justify-between border-b border-white/10 pb-2">
+          <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-white/85">
             Spectral Measurements
           </h3>
 
-          <span className="font-mono text-[9px] text-text-secondary">
+          <span className="font-mono text-[9px] tracking-wider text-white/35">
             02 / MEASUREMENTS
           </span>
         </div>
@@ -469,20 +463,22 @@ function DataView({
 
       {/* Reliability warning */}
       {!profile.reliable && (
-        <section className="border border-accent-amber/30 bg-accent-amber/5 p-4">
+        <section className="border border-amber-400/20 bg-amber-400/[0.035] p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent-amber" />
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
 
             <div>
-              <h3 className="font-sans text-xs font-semibold text-accent-amber">
+              <h3 className="font-sans text-xs font-semibold text-amber-300">
                 Limited Spectral Coverage
               </h3>
 
-              <p className="mt-1 font-sans text-xs leading-relaxed text-text-secondary">
+              <p className="mt-1 font-sans text-xs leading-relaxed text-white/55">
                 <GlossaryText>
-                  The available spectral range is insufficient</GlossaryText> (
-                  {profile.wavelength_range_nm.toFixed(1)} nm; minimum 3 nm).
-                  <GlossaryText>Combining data from all six detectors is required for broader
+                  The available spectral range is insufficient
+                </GlossaryText>{" "}
+                ({profile.wavelength_range_nm.toFixed(1)} nm; minimum 3 nm).{" "}
+                <GlossaryText>
+                  Combining data from all six detectors is required for broader
                   spectral coverage and a more reliable classification.
                 </GlossaryText>
               </p>
@@ -494,12 +490,12 @@ function DataView({
       {/* Algorithm reasons */}
       {profile.reasons.length > 0 && (
         <section>
-          <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
-            <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-text-primary">
+          <div className="mb-3 flex items-center justify-between border-b border-white/10 pb-2">
+            <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-white/85">
               Classification Factors
             </h3>
 
-            <span className="font-mono text-[9px] text-text-secondary">
+            <span className="font-mono text-[9px] tracking-wider text-white/35">
               03 / ANALYSIS
             </span>
           </div>
@@ -508,7 +504,7 @@ function DataView({
             {profile.reasons.map((reason) => (
               <span
                 key={reason}
-                className="border border-border bg-surface-elevated px-3 py-1.5 font-mono text-[10px] text-text-secondary"
+                className="border border-white/10 bg-white/[0.025] px-3 py-1.5 font-mono text-[10px] text-white/65"
               >
                 <GlossaryText>{reason}</GlossaryText>
               </span>
@@ -519,21 +515,21 @@ function DataView({
 
       {/* Spectrum chart */}
       {spectrum.wavelengths_um.length > 0 && (
-        <section className="border border-border bg-background/30 p-4">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+        <section className="border border-white/10 bg-white/[0.02] p-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
             <div>
-              <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-text-primary">
+              <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-white/85">
                 Spectral Profile
               </h3>
 
-              <p className="mt-1 font-mono text-[9px] text-text-secondary">
+              <p className="mt-1 font-mono text-[9px] text-white/35">
                 {spectrum.wavelengths_um.length > 2
                   ? `MICRO-SPECTRUM / ${spectrum.wavelengths_um.length} SAMPLES`
                   : `SPECTRAL POINTS / ${spectrum.wavelengths_um.length}`}
               </p>
             </div>
 
-            <span className="font-mono text-[9px] text-accent-cyan">
+            <span className="font-mono text-[9px] tracking-wider text-cyan-300">
               WAVELENGTH (μm)
             </span>
           </div>
@@ -558,15 +554,15 @@ function MetricCard({
   highlight?: boolean;
 }) {
   return (
-    <div className="min-w-0 border border-border bg-background/40 p-3">
-      <p className="font-mono text-[9px] uppercase tracking-wider text-text-secondary/70">
+    <div className="min-w-0 border border-white/[0.08] bg-white/[0.025] p-3 transition-colors hover:border-white/15">
+      <p className="font-mono text-[9px] uppercase tracking-wider text-white/40">
         {label}
       </p>
 
       <p
         className={cn(
           "mt-2 break-words font-mono text-sm font-medium",
-          highlight ? "text-accent-cyan" : "text-text-primary",
+          highlight ? "text-cyan-300" : "text-white/85",
         )}
       >
         {value}
@@ -642,15 +638,14 @@ function Sparkline({
         y1={H - PAD}
         x2={W - PAD}
         y2={H - PAD}
-        stroke="currentColor"
-        strokeOpacity="0.2"
+        stroke="rgba(255,255,255,0.2)"
         strokeWidth="1"
       />
 
       <polyline
         points={points}
         fill="none"
-        stroke="hsl(var(--accent-cyan))"
+        stroke="#67D9E8"
         strokeWidth={1.8}
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -663,7 +658,7 @@ function Sparkline({
             cx={getX(x)}
             cy={getY(y)}
             r={3.5}
-            fill="hsl(var(--accent-cyan))"
+            fill="#67D9E8"
           />
         ))}
     </svg>

@@ -11,7 +11,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b border-white/15 bg-[#03021d] px-6 py-5 text-white sm:px-10">
+      <header className="border-b border-white/15 bg-[#21212c] px-6 py-5 text-white sm:px-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-5">
           <Link
             to="/"
@@ -207,7 +207,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t border-white/15 bg-[#03021d] px-6 py-10 text-white sm:px-10">
+      <footer className="border-t border-white/15 bg-[#21212c] px-6 py-10 text-white sm:px-10">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap');
         `}</style>
