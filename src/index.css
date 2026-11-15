@@ -129,6 +129,123 @@
     min-width: 0;
   }
 
+
+/* ==========================================
+   HOMEPAGE — STARFIELD BACKGROUND
+========================================== */
+
+.home-landing {
+  isolation: isolate;
+}
+
+/* El fondo queda detrás del header y el footer globales */
+.flex.min-h-screen:has(.home-landing) > header,
+.flex.min-h-screen:has(.home-landing) > footer {
+  position: relative;
+  z-index: 10;
+}
+
+/* Contenedor de estrellas */
+.starfield {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Capas de estrellas */
+.starfield::before,
+.starfield::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+
+  background-repeat: repeat;
+  pointer-events: none;
+
+  animation: stars-twinkle 3.8s ease-in-out infinite;
+  will-change: opacity, filter;
+}
+
+/* Primera capa: estrellas pequeñas */
+.starfield::before {
+  background-image:
+    radial-gradient(1.5px 1.5px at 5% 10%, rgba(255,255,255,1) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 15% 35%, rgba(255,255,255,.95) 99%, transparent),
+    radial-gradient(2px 2px at 25% 75%, rgba(188,220,255,1) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 35% 20%, rgba(255,255,255,.98) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 45% 60%, rgba(255,255,255,.95) 99%, transparent),
+    radial-gradient(2px 2px at 55% 15%, rgba(188,220,255,1) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 65% 85%, rgba(255,255,255,.98) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 75% 40%, rgba(255,255,255,1) 99%, transparent),
+    radial-gradient(2px 2px at 85% 70%, rgba(188,220,255,1) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 95% 25%, rgba(255,255,255,.95) 99%, transparent),
+    radial-gradient(1px 1px at 8% 58%, rgba(255,255,255,.9) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 18% 88%, rgba(188,220,255,.95) 99%, transparent),
+    radial-gradient(1px 1px at 28% 42%, rgba(255,255,255,.9) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 38% 92%, rgba(255,255,255,.95) 99%, transparent),
+    radial-gradient(1px 1px at 48% 30%, rgba(188,220,255,.9) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 58% 68%, rgba(255,255,255,.95) 99%, transparent),
+    radial-gradient(1px 1px at 68% 8%, rgba(255,255,255,.9) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 78% 92%, rgba(188,220,255,.95) 99%, transparent),
+    radial-gradient(1px 1px at 88% 48%, rgba(255,255,255,.9) 99%, transparent);
+
+  background-size: 420px 360px;
+  opacity: 0.9;
+}
+
+/* Segunda capa: estrellas más brillantes */
+.starfield::after {
+  background-image:
+    radial-gradient(2px 2px at 12% 22%, rgba(255,255,255,.95) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 32% 82%, rgba(188,220,255,.95) 99%, transparent),
+    radial-gradient(2px 2px at 52% 42%, rgba(255,255,255,.9) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 72% 12%, rgba(255,255,255,.9) 99%, transparent),
+    radial-gradient(2px 2px at 92% 65%, rgba(188,220,255,.95) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 22% 8%, rgba(255,255,255,.95) 99%, transparent),
+    radial-gradient(2px 2px at 42% 62%, rgba(188,220,255,.95) 99%, transparent),
+    radial-gradient(1.5px 1.5px at 62% 88%, rgba(255,255,255,.95) 99%, transparent),
+    radial-gradient(2px 2px at 82% 35%, rgba(255,255,255,.95) 99%, transparent);
+
+  background-size: 650px 520px;
+  opacity: 0.75;
+
+  animation-duration: 5.6s;
+  animation-delay: -2.8s;
+}
+
+/* Parpadeo */
+@keyframes stars-twinkle {
+  from {
+    opacity: 0.5;
+    filter: brightness(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    filter: brightness(1.45);
+  }
+
+  to {
+    opacity: 0.62;
+    filter: brightness(0.95);
+  }
+}
+
+/* Respeto a preferencias de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .starfield::before,
+  .starfield::after {
+    animation: none;
+  }
+}
+
+
   .home-eyebrow {
     color: #e5e5e5;
 
@@ -567,7 +684,7 @@
     place-items: center;
 
     border: 1px solid rgba(255, 255, 255, 0.7);
-    border-radius: 0%;
+    border-radius: 50%;
   }
 
   /* ==========================================
@@ -949,7 +1066,7 @@
   height: 30px;
   place-items: center;
   border: 1px solid white;
-  border-radius: 0%;
+  border-radius: 50%;
 }
 
 .stack-card:focus-visible {

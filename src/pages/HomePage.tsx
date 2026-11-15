@@ -10,7 +10,7 @@ const sectors = [
     description: "Massive star-forming region.",
     ra: "05:37:43.2",
     dec: "−06° 54′ 36″",
-    epochs: ["2025-09", "2025-09b"],
+    epochs: ["2025-09", "2025-09b", "2026-06", "2026-06b", "2026-06c"],
     image: "/images/orion.jpg",
   },
   {
@@ -41,6 +41,7 @@ export function HomePage() {
     <div className="home-landing home-landing--stacked">
       <main className="home-layout home-layout--stacked">
         <section className="home-copy" aria-labelledby="home-title">
+          <div className="starfield" aria-hidden="true" />
           <span className="home-eyebrow">NASA SPHEREx · ORBITAL MISSION</span>
 
           <h1 id="home-title">EXPLORE THE UNIVERSE WITH SPHEREx</h1>
