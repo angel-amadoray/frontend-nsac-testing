@@ -60,7 +60,7 @@ export function ImageViewer({
   return (
     <div
       className={cn(
-        'relative aspect-square w-full overflow-hidden rounded-xl border border-border bg-black',
+        'relative aspect-square w-full overflow-hidden  border border-border bg-black',
         className,
       )}
     >
@@ -95,24 +95,24 @@ export function ImageViewer({
       </TransformWrapper>
 
       {/* Controles zoom */}
-      <div className="absolute right-3 bottom-3 z-30 flex flex-col gap-1.5 rounded-md border border-border bg-surface/90 p-1 backdrop-blur">
+      <div className="absolute right-3 bottom-3 z-30 flex flex-col gap-1.5  border border-border bg-surface/90 p-1 backdrop-blur">
         <button
           onClick={() => controlsRef.current?.zoomIn()}
-          className="rounded p-1.5 text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
+          className=" text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
           aria-label="Zoom in"
         >
           <Plus className="h-4 w-4" />
         </button>
         <button
           onClick={() => controlsRef.current?.zoomOut()}
-          className="rounded p-1.5 text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
+          className=" text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
           aria-label="Zoom out"
         >
           <Minus className="h-4 w-4" />
         </button>
         <button
           onClick={() => controlsRef.current?.resetTransform()}
-          className="rounded p-1.5 text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
+          className=" text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
           aria-label="Reset"
         >
           <Maximize2 className="h-4 w-4" />

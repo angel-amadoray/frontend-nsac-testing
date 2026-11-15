@@ -190,7 +190,7 @@ function IdentifyContent({
           esta posición.
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2 font-mono text-xs text-text-secondary">
-          <div className="rounded border border-border bg-background/50 px-2 py-1.5">
+          <div className=" border border-border bg-background/50 px-2 py-1.5">
             <p className="text-text-secondary/60">RA</p>
             <p className="text-text-primary">{data.ra_deg.toFixed(5)}°</p>
           </div>

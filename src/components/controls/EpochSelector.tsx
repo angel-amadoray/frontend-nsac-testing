@@ -24,7 +24,7 @@ export function SingleEpochSelector({
             key={ep}
             onClick={() => onChange(ep)}
             className={cn(
-              'rounded-md border px-3 py-1.5 font-mono text-xs transition-all',
+              ' border px-3 py-1.5 font-mono text-xs transition-all',
               value === ep
                 ? 'border-accent-cyan bg-accent-cyan/15 text-accent-cyan'
                 : 'border-border bg-surface text-text-secondary hover:border-accent-cyan/40 hover:text-text-primary',

@@ -37,7 +37,7 @@ export function DetectorSelector({
               disabled={!isAvailable}
               title={!isAvailable ? 'Detector no disponible para esta época' : `Detector ${d}`}
               className={cn(
-                'rounded-md border py-2 font-mono text-sm transition-all',
+                ' border py-2 font-mono text-sm transition-all',
                 isActive && 'border-accent-cyan bg-accent-cyan/15 text-accent-cyan',
                 !isActive && isAvailable && 'border-border bg-surface text-text-secondary hover:border-accent-cyan/40 hover:text-text-primary',
                 !isAvailable && 'border-border/50 bg-surface/50 text-text-secondary/30 cursor-not-allowed'
