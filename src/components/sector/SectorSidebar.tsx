@@ -1,10 +1,10 @@
-
 import { Link } from "react-router-dom";
 import { Crosshair, RotateCcw, Sparkles } from "lucide-react";
 
 import { OverlayToggle } from "@/components/controls/OverlayToggle";
 import { ViewToggle, type ViewMode } from "@/components/controls/ViewToggle";
 import { SliderControl } from "@/components/ui/SliderControl";
+import { GlossaryText } from "@/components/glossary/GlossaryText";
 
 import { cn } from "@/lib/utils";
 
@@ -84,7 +84,9 @@ export function SectorSidebar({
 
           <h1>{sectorName}</h1>
 
-          <p>{sectorDescription}</p>
+          <p>
+            <GlossaryText>{sectorDescription}</GlossaryText>
+          </p>
 
           <div className="sector-coordinates">
             <span>RA {rightAscension}</span>
@@ -131,9 +133,7 @@ export function SectorSidebar({
           </section>
 
           <section className="sector-control">
-            <span className="sector-section-label">
-              03 / SPECTRAL ANALYSIS
-            </span>
+            <span className="sector-section-label">03 / SPECTRAL ANALYSIS</span>
 
             <Link
               to={`/sector/${sectorId}/advanced`}
@@ -167,7 +167,9 @@ export function SectorSidebar({
             </div>
 
             <p className="sector-control-description">
-              Per-row normalization reduces spectral gradients.
+              <GlossaryText>
+                Per-row normalization reduces spectral gradients.
+              </GlossaryText>
             </p>
           </section>
         </>
@@ -175,9 +177,7 @@ export function SectorSidebar({
         /* DIFFERENCE MODE */
 
         <section className="sector-control">
-          <span className="sector-section-label">
-            02 / DETECTION THRESHOLD
-          </span>
+          <span className="sector-section-label">02 / DETECTION THRESHOLD</span>
 
           <SliderControl
             label="Threshold (percentile)"
@@ -215,9 +215,7 @@ export function SectorSidebar({
 
       {overlayEnabled && (
         <section className="sector-control">
-          <span className="sector-section-label">
-            06 / OBJECT MAGNITUDE
-          </span>
+          <span className="sector-section-label">06 / OBJECT MAGNITUDE</span>
 
           <SliderControl
             label="Limiting magnitude (V)"
@@ -235,9 +233,7 @@ export function SectorSidebar({
       {/* PIXEL IDENTIFICATION */}
 
       <section className="sector-control">
-        <span className="sector-section-label">
-          07 / PIXEL IDENTIFICATION
-        </span>
+        <span className="sector-section-label">07 / PIXEL IDENTIFICATION</span>
 
         <button
           type="button"
@@ -251,9 +247,7 @@ export function SectorSidebar({
           <span className="sector-identify-button-label">
             <Crosshair className="h-4 w-4" />
 
-            {identifyMode
-              ? "Click image to identify"
-              : "Enable identification"}
+            {identifyMode ? "Click image to identify" : "Enable identification"}
           </span>
 
           <span className="sector-identify-status">
