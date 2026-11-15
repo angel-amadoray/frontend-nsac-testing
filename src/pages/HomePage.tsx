@@ -1,64 +1,175 @@
-import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { SectorGrid } from '@/components/sector/SectorGrid'
-import { SectorGridSkeleton } from '@/components/sector/SectorGridSkeleton'
-import { useHotspots } from '@/hooks/useHotspots'
+
+import { useState } from 'react'
+import { ArrowUpRight, CalendarDays, Crosshair } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+const sectors = [
+  {
+    id: 'orion_nebula',
+    name: 'Orion Nebula (M42)',
+    description: 'Massive star-forming region.',
+    ra: '05:37:43.2',
+    dec: '−06° 54′ 36″',
+    epochs: ['2025-09', '2025-09b'],
+    image: '/images/orion.jpg',
+  },
+  {
+    id: 'galactic_center',
+    name: 'Galactic Center',
+    description: 'The densest region of the Milky Way, located in Sagittarius.',
+    ra: '17:42:28.2',
+    dec: '−29° 09′ 04″',
+    epochs: ['2025-09', '2026-03'],
+    image: '/images/galactic-center.png',
+  },
+  {
+    id: 'rho_ophiuchi',
+    name: 'Rho Ophiuchi Cloud Complex',
+    description:
+      'A nearby star-forming region (140 pc) containing molecular clouds and abundant infrared sources.',
+    ra: '16:28:04.8',
+    dec: '−24° 32′ 24″',
+    epochs: [],
+    image: '/images/rho-ophiuchi.png',
+  },
+] as const
 
 export function HomePage() {
-  const { data, isLoading, isError, error, refetch, isFetching } = useHotspots()
+  const [activeIndex, setActiveIndex] = useState(0)
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12">
-      <section className="mb-12 text-center">
-        <span className="mb-4 inline-block rounded-full border border-accent-cyan/30 bg-accent-cyan/5 px-3 py-1 font-mono text-xs text-accent-cyan">
-          NASA SPHEREx · Misión en órbita
-        </span>
-        <h1 className="font-display text-5xl font-bold tracking-tight md:text-6xl">
-          El universo en <span className="text-gradient">102 longitudes de onda</span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-text-secondary">
-          Explora imágenes espectrales capturadas por el telescopio SPHEREx.
-          Detecta asteroides, compara épocas y descubre candidatos a nuevos objetos.
-        </p>
-      </section>
+    <div className="home-landing home-landing--stacked">
+      <main className="home-layout home-layout--stacked">
 
-      <section>
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold">Sectores disponibles</h2>
-          {isFetching && !isLoading && (
-            <span className="flex items-center gap-2 font-mono text-xs text-text-secondary">
-              <RefreshCw className="h-3 w-3 animate-spin" />
-              Actualizando
-            </span>
-          )}
-        </div>
+        <section className="home-copy" aria-labelledby="home-title">
+          <span className="home-eyebrow">
+            NASA SPHEREx · ORBITAL MISSION
+          </span>
 
-        {isLoading && <SectorGridSkeleton />}
+          <h1 id="home-title">
+            EXPLORE THE UNIVERSE WITH SPHEREx
+          </h1>
 
-        {isError && (
-          <div className="flex flex-col items-center gap-4 rounded-xl border border-danger/30 bg-danger/5 p-8 text-center">
-            <AlertTriangle className="h-10 w-10 text-danger" />
-            <div>
-              <h3 className="font-display text-lg font-semibold">No se pudo cargar</h3>
-              <p className="mt-1 text-sm text-text-secondary">
-                {error instanceof Error ? error.message : 'Error desconocido'}
-              </p>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="h-4 w-4" />
-              Reintentar
-            </Button>
+          <div className="home-description">
+            <p>
+              Explore images captured by NASA's SPHEREx space telescope.
+              The SPHEREx mission has been mapping the entire sky every
+              six months across 102 near-infrared wavelength bands,
+              collecting images of more than one billion objects.
+            </p>
+
+            <p>
+              Comets, asteroids, stars, brown dwarfs, and even new
+              planets can be revealed by comparing their positions
+              across different images. The satellite revisits the same
+              region of the sky every six months, allowing you to
+              measure and compare changes in the celestial objects
+              captured in these images. Enjoy exploring!
+            </p>
           </div>
-        )}
+        </section>
 
-        {data && data.length === 0 && (
-          <div className="rounded-xl border border-border bg-surface p-8 text-center text-text-secondary">
-            No hay sectores disponibles todavía.
+        <section
+          id="sectors"
+          className="stack-carousel"
+          aria-label="Astronomical sectors"
+        >
+          <div className="stack-carousel__heading">
+            <span />
+            SELECT A SECTOR
+            <span />
           </div>
-        )}
 
-        {data && data.length > 0 && <SectorGrid sectors={data} />}
-      </section>
+          <div className="stack-carousel__list">
+            {sectors.map((sector, index) => {
+              const relativePosition =
+                (index - activeIndex + sectors.length) % sectors.length
+
+              const position =
+                relativePosition === 0
+                  ? 'middle'
+                  : relativePosition === 1
+                    ? 'top'
+                    : 'bottom'
+
+              const cardContent = (
+                <>
+                  <div className="stack-card__image" aria-hidden="true">
+                    <img
+                      src={sector.image}
+                      alt=""
+                      draggable={false}
+                    />
+                  </div>
+
+                  {position === 'middle' && (
+                    <div className="stack-card__content">
+                      <div className="stack-card__eyebrow">
+                        SECTOR 0{index + 1}
+                      </div>
+
+                      <h2>{sector.name}</h2>
+
+                      <p>{sector.description}</p>
+
+                      <div className="stack-card__coordinates">
+                        <span>
+                          <Crosshair />
+                          RA {sector.ra}
+                        </span>
+
+                        <span>
+                          <Crosshair />
+                          Dec {sector.dec}
+                        </span>
+                      </div>
+
+                      <div className="stack-card__footer">
+                        <span>
+                          <CalendarDays />
+                          {sector.epochs.length} observation epochs
+                          {sector.epochs.length > 0
+                            ? ` · ${sector.epochs.join(' · ')}`
+                            : ''}
+                        </span>
+
+                        <span className="stack-card__open">
+                          <ArrowUpRight />
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )
+
+              const className = `stack-card stack-card--${position}`
+
+              return position === 'middle' ? (
+                <Link
+                  key={sector.id}
+                  to={`/sector/${sector.id}`}
+                  className={className}
+                  aria-label={`Explore ${sector.name}`}
+                >
+                  {cardContent}
+                </Link>
+              ) : (
+                <button
+                  key={sector.id}
+                  type="button"
+                  className={className}
+                  onClick={() => setActiveIndex(index)}
+                  aria-label={`Select ${sector.name}`}
+                  title={`Show ${sector.name}`}
+                >
+                  {cardContent}
+                </button>
+              )
+            })}
+          </div>
+        </section>
+
+      </main>
     </div>
   )
 }

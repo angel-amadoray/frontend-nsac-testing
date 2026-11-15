@@ -38,16 +38,12 @@
     inset: 0;
     z-index: -1;
     background:
-      radial-gradient(
-        ellipse 80% 60% at 50% -10%,
+      radial-gradient(ellipse 80% 60% at 50% -10%,
         hsl(var(--accent-cyan) / 0.08),
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse 60% 50% at 80% 100%,
+        transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 100%,
         hsl(var(--accent-purple) / 0.06),
-        transparent 60%
-      ),
+        transparent 60%),
       hsl(var(--background));
   }
 
@@ -62,11 +58,960 @@
   }
 }
 
+
 @layer components {
+
+  /* ==========================================
+     CONTROLES GENERALES
+  ========================================== */
+
   .slider-nasa::-webkit-slider-thumb {
     @apply h-3.5 w-3.5 cursor-pointer appearance-none rounded-full border-2 border-background bg-accent-cyan shadow-md shadow-accent-cyan/40 transition-transform hover:scale-110;
   }
+
   .slider-nasa::-moz-range-thumb {
     @apply h-3.5 w-3.5 cursor-pointer appearance-none rounded-full border-2 border-background bg-accent-cyan shadow-md shadow-accent-cyan/40;
+  }
+
+  /* ==========================================
+     HOMEPAGE
+  ========================================== */
+
+  .home-landing {
+    --home-white: #f5f3f1;
+
+    position: relative;
+    width: 100%;
+    height: 100svh;
+    min-height: 600px;
+    overflow: hidden;
+
+    background: #000;
+    color: var(--home-white);
+  }
+
+  .home-landing--stacked {
+    display: block;
+  }
+
+  /* Distribución principal */
+
+  .home-layout {
+    display: grid;
+    grid-template-columns: minmax(340px, 0.94fr) minmax(470px, 1.06fr);
+    align-items: center;
+
+    gap: clamp(32px, 6vw, 92px);
+
+    width: min(1440px, 100%);
+    height: 100%;
+    min-height: 0;
+
+    margin: 0 auto;
+    padding: clamp(44px, 7vh, 84px) clamp(28px, 6vw, 88px);
+  }
+
+  .home-layout.home-layout--stacked {
+    grid-template-columns: minmax(280px, 0.84fr) minmax(0, 1.16fr);
+    gap: clamp(24px, 4vw, 62px);
+  }
+
+  /* ==========================================
+     CONTENIDO IZQUIERDO
+  ========================================== */
+
+  .home-copy {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+    max-width: 620px;
+    min-width: 0;
+  }
+
+  .home-eyebrow {
+    color: #e5e5e5;
+
+    font-family: Inter, Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.035em;
+  }
+
+  .home-copy h1 {
+    max-width: 650px;
+
+    margin: 24px 0 20px;
+
+    color: #fff;
+
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: clamp(38px, 4.5vw, 68px);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 0.96;
+
+    text-wrap: balance;
+  }
+
+  .home-description {
+    max-width: 590px;
+
+    color: #d0cecc;
+
+    font-family: Inter, Arial, sans-serif;
+    font-size: clamp(12px, 1.02vw, 14px);
+    font-weight: 300;
+    line-height: 1.55;
+  }
+
+  .home-description p + p {
+    margin-top: 18px;
+  }
+
+  /* ==========================================
+     NAVEGACIÓN INFERIOR
+  ========================================== */
+
+  .home-scroll {
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    color: #f5f3f1;
+
+    font-family: Inter, Arial, sans-serif;
+    font-size: 11px;
+    text-decoration: none;
+  }
+
+  .home-scroll small {
+    display: block;
+    margin-top: 3px;
+
+    color: #aaa;
+    font-size: 10px;
+  }
+
+  .home-scroll__arrow {
+    display: grid;
+    width: 38px;
+    height: 34px;
+
+    place-items: center;
+
+    background: #f5f3f1;
+    color: #080808;
+
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+
+    transition: transform 180ms ease;
+  }
+
+  .home-scroll__arrow svg {
+    width: 15px;
+    height: 15px;
+    margin-top: -5px;
+  }
+
+  .home-scroll:hover .home-scroll__arrow {
+    transform: translateY(3px);
+  }
+
+  /* ==========================================
+     SISTEMA DE TARJETAS SPHEREx
+  ========================================== */
+
+  .stack-carousel {
+    position: relative;
+
+    width: 100%;
+    max-width: 680px;
+    min-width: 0;
+
+    margin-left: auto;
+  }
+
+  /* Encabezado */
+
+  .stack-carousel__heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin: 0 0 14px 5px;
+
+    color: #dedbd8;
+
+    font-family: Inter, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.17em;
+  }
+
+  .stack-carousel__heading span {
+    width: 27px;
+    height: 1px;
+
+    background: #555;
+  }
+
+  /* ==========================================
+     ESCENARIO DE DISTRIBUCIÓN
+  ========================================== */
+
+  .stack-carousel__list {
+    --center-x: 39%;
+    --center-y: 50%;
+
+    --side-x: 79%;
+    --top-y: 17%;
+    --bottom-y: 83%;
+
+    --center-width: 78%;
+    --center-height: 72%;
+
+    --side-width: 40%;
+    --side-height: 36%;
+
+    position: relative;
+
+    width: 100%;
+    height: clamp(390px, 65vh, 620px);
+
+    overflow: visible;
+    isolation: isolate;
+  }
+
+  /* ==========================================
+     BASE DE TODAS LAS TARJETAS
+  ========================================== */
+
+  .stack-card {
+    position: absolute;
+
+    display: block;
+
+    padding: 0;
+    overflow: hidden;
+
+    border: 1px solid rgba(255, 255, 255, 0.14);
+
+    background: #101012;
+    color: #f5f3f1;
+
+    font-family: inherit;
+    text-align: left;
+    text-decoration: none;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    box-shadow: 0 20px 65px rgba(0, 0, 0, 0.55);
+
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+
+    cursor: pointer;
+
+    transition:
+      left 800ms cubic-bezier(.22, .78, .18, 1),
+      top 800ms cubic-bezier(.22, .78, .18, 1),
+      width 800ms cubic-bezier(.22, .78, .18, 1),
+      height 800ms cubic-bezier(.22, .78, .18, 1),
+      opacity 500ms ease,
+      filter 500ms ease,
+      box-shadow 500ms ease,
+      border-color 500ms ease;
+  }
+
+  /* ==========================================
+     TARJETA CENTRAL
+  ========================================== */
+
+  .stack-card--middle {
+    z-index: 3;
+
+    top: var(--center-y);
+    left: var(--center-x);
+
+    width: var(--center-width);
+    height: var(--center-height);
+
+    opacity: 1;
+    filter: none;
+
+    border-color: rgba(255, 255, 255, 0.42);
+
+    box-shadow:
+      0 30px 90px rgba(0, 0, 0, 0.72),
+      0 0 35px rgba(255, 255, 255, 0.035);
+  }
+
+  .stack-card--middle:hover {
+    border-color: rgba(255, 255, 255, 0.8);
+
+    box-shadow:
+      0 35px 100px rgba(0, 0, 0, 0.82);
+  }
+
+  /* ==========================================
+     TARJETA SUPERIOR
+  ========================================== */
+
+  .stack-card--top {
+    z-index: 1;
+
+    top: var(--top-y);
+    left: var(--side-x);
+
+    width: var(--side-width);
+    height: var(--side-height);
+
+    opacity: 0.75;
+    filter: saturate(0.75) brightness(0.76);
+  }
+
+  .stack-card--top:hover {
+    z-index: 4;
+
+    opacity: 1;
+    filter: none;
+
+    border-color: rgba(255, 255, 255, 0.8);
+  }
+
+  /* ==========================================
+     TARJETA INFERIOR
+  ========================================== */
+
+  .stack-card--bottom {
+    z-index: 2;
+
+    top: var(--bottom-y);
+    left: var(--side-x);
+
+    width: var(--side-width);
+    height: var(--side-height);
+
+    opacity: 0.75;
+    filter: saturate(0.75) brightness(0.76);
+  }
+
+  .stack-card--bottom:hover {
+    z-index: 4;
+
+    opacity: 1;
+    filter: none;
+
+    border-color: rgba(255, 255, 255, 0.8);
+  }
+
+  /* ==========================================
+     IMÁGENES
+  ========================================== */
+
+  .stack-card__image {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #080808;
+  }
+
+  .stack-card__image img {
+    position: absolute;
+    inset: 0;
+
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center;
+
+    pointer-events: none;
+
+    transition: transform 900ms cubic-bezier(.22, .78, .18, 1);
+  }
+
+  .stack-card--middle:hover .stack-card__image img {
+    transform: scale(1.035);
+  }
+
+  /* ==========================================
+     INFORMACIÓN DE LA TARJETA CENTRAL
+  ========================================== */
+
+  .stack-card__content {
+    position: absolute;
+    inset: auto 0 0;
+
+    z-index: 2;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    min-width: 0;
+
+    padding: clamp(16px, 2vw, 26px);
+
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.18) 18%,
+      rgba(0, 0, 0, 0.88) 100%
+    );
+
+    pointer-events: none;
+  }
+
+  /* Etiqueta */
+
+  .stack-card__eyebrow {
+    color: #c8c4c1;
+
+    font-family: Inter, Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+  }
+
+  /* Título */
+
+  .stack-card__content h2 {
+    margin: 9px 0 6px;
+
+    color: #fff;
+
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: clamp(20px, 2vw, 29px);
+    font-weight: 700;
+    line-height: 1.08;
+  }
+
+  /* Descripción */
+
+  .stack-card__content p {
+    margin: 0;
+
+    color: #e0dddb;
+
+    font-family: Inter, Arial, sans-serif;
+    font-size: clamp(11px, 0.9vw, 13px);
+    font-weight: 300;
+    line-height: 1.45;
+  }
+
+  /* Coordenadas */
+
+  .stack-card__coordinates,
+  .stack-card__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    gap: 6px 13px;
+
+    color: #dedbd8;
+
+    font-family: Inter, Arial, sans-serif;
+    font-size: 10px;
+  }
+
+  .stack-card__coordinates {
+    margin-top: 11px;
+  }
+
+  .stack-card__coordinates span,
+  .stack-card__footer > span:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .stack-card__coordinates svg,
+  .stack-card__footer svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* Pie */
+
+  .stack-card__footer {
+    justify-content: space-between;
+
+    margin-top: 11px;
+    padding-top: 10px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.22);
+  }
+
+  .stack-card__open {
+    display: grid;
+
+    width: 30px;
+    height: 30px;
+
+    flex: 0 0 auto;
+    place-items: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+  }
+
+  /* ==========================================
+     ESTADOS DE ACCESIBILIDAD
+  ========================================== */
+
+  .stack-card:focus-visible {
+    z-index: 5;
+
+    outline: 2px solid #fff;
+    outline-offset: 4px;
+  }
+
+  /* ==========================================
+     TABLETS
+  ========================================== */
+
+  @media (max-width: 1000px) {
+
+    .home-layout--stacked {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 24px;
+
+      padding: 32px 24px;
+    }
+
+    .home-copy h1 {
+      font-size: clamp(32px, 4vw, 46px);
+    }
+
+    .home-description {
+      font-size: 12px;
+    }
+
+    .stack-carousel__list {
+      --center-x: 39%;
+      --side-x: 79%;
+
+      --center-width: 78%;
+      --center-height: 68%;
+
+      --side-width: 40%;
+      --side-height: 34%;
+
+      height: clamp(360px, 58vh, 520px);
+    }
+  }
+
+  /* ==========================================
+     MÓVILES
+  ========================================== */
+
+  @media (max-width: 700px) {
+
+    .home-landing {
+      height: auto;
+      min-height: 100svh;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .home-layout--stacked {
+      display: grid;
+
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(380px, 1fr);
+
+      align-items: start;
+      gap: 24px;
+
+      min-height: 100svh;
+      height: auto;
+
+      padding: 35px 22px 30px;
+    }
+
+    .home-copy {
+      max-width: 650px;
+    }
+
+    .home-copy h1 {
+      margin: 14px 0;
+      font-size: clamp(34px, 9vw, 52px);
+      line-height: 0.98;
+    }
+
+    .home-description {
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .home-description p + p {
+      margin-top: 10px;
+    }
+
+    .stack-carousel {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .stack-carousel__heading {
+      margin-bottom: 10px;
+      font-size: 9px;
+    }
+
+    .stack-carousel__list {
+      --center-x: 42%;
+      --center-y: 50%;
+
+      --side-x: 80%;
+      --top-y: 17%;
+      --bottom-y: 83%;
+
+      --center-width: 84%;
+      --center-height: 68%;
+
+      --side-width: 40%;
+      --side-height: 32%;
+
+      width: 100%;
+      height: clamp(330px, 48vh, 430px);
+    }
+
+    .stack-card__content {
+      padding: 12px;
+    }
+
+    .stack-card__eyebrow {
+      font-size: 7px;
+    }
+
+    .stack-card__content h2 {
+      margin: 5px 0;
+      font-size: clamp(15px, 4vw, 20px);
+    }
+
+    .stack-card__content p {
+      font-size: 9px;
+      line-height: 1.3;
+    }
+
+    .stack-card__coordinates,
+    .stack-card__footer {
+      gap: 4px 7px;
+      margin-top: 6px;
+      font-size: 7px;
+    }
+
+    .stack-card__coordinates svg,
+    .stack-card__footer svg {
+      width: 9px;
+      height: 9px;
+    }
+
+    .stack-card__open {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  /* ==========================================
+     PANTALLAS MUY PEQUEÑAS
+  ========================================== */
+
+  @media (max-width: 380px) {
+
+    .home-layout--stacked {
+      padding-right: 16px;
+      padding-left: 16px;
+    }
+
+    .stack-carousel__list {
+      --center-x: 42%;
+      --side-x: 80%;
+
+      --center-width: 84%;
+      --side-width: 40%;
+
+      height: 340px;
+    }
+
+    .stack-card__content {
+      padding: 9px;
+    }
+
+    .stack-card__coordinates,
+    .stack-card__footer {
+      font-size: 6px;
+    }
+  }
+
+  /* ==========================================
+     MOVIMIENTO REDUCIDO
+  ========================================== */
+
+  @media (prefers-reduced-motion: reduce) {
+
+    .stack-card,
+    .stack-card__image img,
+    .home-scroll__arrow {
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+
+
+/* ==========================================
+   SPHEREx — CARRUSEL DE SECTORES
+   ========================================== */
+
+.stack-carousel {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 650px;
+  min-width: 0;
+  margin-inline: auto;
+  overflow: visible;
+}
+
+.stack-carousel__heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  color: #d1cfcd;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+}
+
+.stack-carousel__heading span {
+  width: 30px;
+  height: 1px;
+  background: #666;
+}
+
+.stack-carousel__list {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  width: 100%;
+  height: clamp(390px, 65vh, 660px);
+  min-height: 390px;
+  overflow: visible;
+}
+
+.stack-card {
+  position: absolute;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+
+  border: 1px solid rgba(255,255,255,.2);
+  background: #101012;
+  color: white;
+  text-decoration: none;
+
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+
+  transition:
+    left 800ms ease,
+    top 800ms ease,
+    width 800ms ease,
+    height 800ms ease,
+    opacity 500ms ease,
+    filter 500ms ease;
+}
+
+.stack-card--middle {
+  z-index: 3;
+  top: 50%;
+  left: 39%;
+  width: 78%;
+  height: 72%;
+  opacity: 1;
+}
+
+.stack-card--top {
+  z-index: 2;
+  top: 16%;
+  left: 79%;
+  width: 43%;
+  height: 38%;
+  opacity: .72;
+  filter: brightness(.75);
+}
+
+.stack-card--bottom {
+  z-index: 1;
+  top: 84%;
+  left: 79%;
+  width: 43%;
+  height: 38%;
+  opacity: .72;
+  filter: brightness(.75);
+}
+
+.stack-card__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #171717;
+}
+
+.stack-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stack-card__content {
+  position: absolute;
+  z-index: 2;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+
+  background: linear-gradient(
+    transparent,
+    rgba(0,0,0,.9)
+  );
+}
+
+.stack-card--top .stack-card__content,
+.stack-card--bottom .stack-card__content {
+  display: none;
+}
+
+.stack-card__eyebrow {
+  font-size: 9px;
+  letter-spacing: .16em;
+}
+
+.stack-card__content h2 {
+  margin: 9px 0;
+  font-size: clamp(20px, 2vw, 29px);
+}
+
+.stack-card__content p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.stack-card__coordinates,
+.stack-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  font-size: 10px;
+}
+
+.stack-card__coordinates span,
+.stack-card__footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stack-card__coordinates svg,
+.stack-card__footer svg {
+  width: 13px;
+  height: 13px;
+}
+
+.stack-card__open {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid white;
+  border-radius: 50%;
+}
+
+.stack-card:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 4px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .home-layout.home-layout--stacked {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .home-landing.home-landing--stacked {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  .stack-carousel {
+    width: 100%;
+    max-width: 650px;
+  }
+
+  .stack-carousel__list {
+    height: 430px;
+  }
+}
+
+@media (max-width: 560px) {
+  .stack-carousel__list {
+    height: 350px;
+    min-height: 350px;
+  }
+
+  .stack-card--middle {
+    left: 43%;
+    width: 88%;
+    height: 65%;
+  }
+
+  .stack-card--top,
+  .stack-card--bottom {
+    left: 83%;
+    width: 48%;
+    height: 32%;
+  }
+
+  .stack-card--top {
+    top: 14%;
+  }
+
+  .stack-card--bottom {
+    top: 86%;
+  }
+
+  .stack-card__content {
+    padding: 12px;
   }
 }
