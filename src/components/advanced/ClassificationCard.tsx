@@ -102,7 +102,7 @@ export function ClassificationCard({ classification }: ClassificationCardProps) 
   const confidencePct = Math.round(classification.confidence * 100)
 
   return (
-    <div className={cn('rounded-xl border p-5', meta.border, meta.bg)}>
+    <div className={cn(' border p-5', meta.border, meta.bg)}>
       <div className="flex items-start gap-4">
         <span className="text-4xl leading-none">{meta.emoji}</span>
         <div className="min-w-0 flex-1">

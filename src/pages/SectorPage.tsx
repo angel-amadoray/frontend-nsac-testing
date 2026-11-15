@@ -1,33 +1,39 @@
-import { AlertTriangle, Crosshair, RotateCcw, Sparkles } from "lucide-react";
+import "./SectorPage.css";
+
+import { SectorViewer } from "@/components/sector/SectorViewer";
+import { SectorSidebar } from "@/components/sector/SectorSidebar";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { DetectorAnimation } from "@/components/controls/DetectorAnimation";
-import { DetectorSelector } from "@/components/controls/DetectorSelector";
-import {
-  DualEpochSelector,
-  SingleEpochSelector,
-} from "@/components/controls/EpochSelector";
-import { OverlayToggle } from "@/components/controls/OverlayToggle";
-import { ViewToggle, type ViewMode } from "@/components/controls/ViewToggle";
+import { useParams } from "react-router-dom";
+
+import { AlertTriangle } from "lucide-react";
+
+
 import { Skeleton } from "@/components/ui/Skeleton";
-import { SliderControl } from "@/components/ui/SliderControl";
+
 import { AsteroidMarker } from "@/components/viewer/AsteroidMarker";
-import { ErrorOverlay } from "@/components/viewer/ErrorOverlay";
-import { ImageViewer } from "@/components/viewer/ImageViewer";
-import { LoadingOverlay } from "@/components/viewer/LoadingOverlay";
+
+import { ObjectVisualizerModal } from "@/components/three/ObjectVisualizerModal";
+
 import { useComposite } from "@/hooks/useComposite";
 import { useDifference } from "@/hooks/useDifference";
 import { useHotspot } from "@/hooks/useHotspot";
 import { useKnownObjects } from "@/hooks/useKnownObjects";
 import { useUrlState } from "@/hooks/useUrlState";
-import { resolveApiUrl } from "@/lib/api";
-import type { KnownObject } from "@/lib/types";
-import { cn, formatDec, formatRA } from "@/lib/utils";
-import { ObjectVisualizerModal } from "@/components/three/ObjectVisualizerModal";
-import type { SpectrumInput } from "@/hooks/useSpectrum";
 import { useAvailableDetectors } from "@/hooks/useAvailableDetectors";
 
-// ---- Defaults ----
+import { resolveApiUrl } from "@/lib/api";
+import type { KnownObject } from "@/lib/types";
+import { formatDec, formatRA } from "@/lib/utils";
+
+import type { ViewMode } from "@/components/controls/ViewToggle";
+
+import type { SpectrumInput } from "@/hooks/useSpectrum";
+
+// =========================================================
+// 00. DEFAULT CONFIGURATION
+// =========================================================
+
 const DEFAULTS = {
   view: "composite" as ViewMode,
   detector: 1,
@@ -37,34 +43,111 @@ const DEFAULTS = {
   max_vmag: 22,
 };
 
+// =========================================================
+// 00.1 DETECTOR NAVIGATION
+// =========================================================
+
+const DETECTOR_SEQUENCE = [1, 2, 3, 4, 5, 6] as const;
+
+// =========================================================
+// 01. SECTOR PAGE
+// =========================================================
+
 export function SectorPage() {
   const { id } = useParams<{ id: string }>();
+
   const { get, getNumber, set } = useUrlState();
+
+  // =======================================================
+  // 01.1 SECTOR DATA
+  // =======================================================
+
   const hotspotQuery = useHotspot(id);
   const hotspot = hotspotQuery.data;
 
-  // ---- Estado en URL ----
+  // =======================================================
+  // 01.2 URL-BASED VIEWER STATE
+  // =======================================================
+
   const view = get("view", DEFAULTS.view) as ViewMode;
+
   const detector = getNumber("detector", DEFAULTS.detector);
+
   const epoch = get("epoch", hotspot?.epochs[0] ?? "");
+
   const epochFrom = get("epoch_from", hotspot?.epochs[0] ?? "");
+
   const epochTo = get(
     "epoch_to",
     hotspot?.epochs[1] ?? hotspot?.epochs[0] ?? "",
   );
+
   const overlayEnabled = get("overlay", "0") === "1";
   const identifyMode = get("identify", "0") === "1";
+
   const stretch = getNumber("stretch", DEFAULTS.stretch);
   const mode = get("mode", DEFAULTS.mode) as "global" | "per_row";
   const threshold = getNumber("threshold", DEFAULTS.threshold);
   const maxVmag = getNumber("max_vmag", DEFAULTS.max_vmag);
 
-  // ---- Popover ----
+  // =======================================================
+  // 01.3 EPOCH TIMELINE STATE
+  // Determines which endpoint is modified in Difference mode.
+  // =======================================================
+
+  const [epochTarget, setEpochTarget] = useState<"from" | "to">("to");
+
+  const epochs = hotspot?.epochs ?? [];
+
+  const selectedTimelineEpoch =
+    view === "composite" ? epoch : epochTarget === "from" ? epochFrom : epochTo;
+
+  const selectTimelineEpoch = useCallback(
+    (selectedEpoch: string) => {
+      if (view === "composite") {
+        set({ epoch: selectedEpoch });
+        return;
+      }
+
+      if (epochTarget === "from") {
+        set({ epoch_from: selectedEpoch });
+      } else {
+        set({ epoch_to: selectedEpoch });
+      }
+    },
+    [view, epochTarget, set],
+  );
+
+  const changeEpoch = useCallback(
+    (direction: -1 | 1) => {
+      if (epochs.length <= 1) return;
+
+      const currentIndex = epochs.indexOf(selectedTimelineEpoch);
+      const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+
+      const nextIndex = (safeIndex + direction + epochs.length) % epochs.length;
+
+      const nextEpoch = epochs[nextIndex];
+
+      if (nextEpoch) {
+        selectTimelineEpoch(nextEpoch);
+      }
+    },
+    [epochs, selectedTimelineEpoch, selectTimelineEpoch],
+  );
+
+  // =======================================================
+  // 02. SPECTRAL VISUALIZER STATE
+  // =======================================================
+
   const [visualizerInput, setVisualizerInput] = useState<SpectrumInput | null>(
     null,
   );
 
-  // ---- Queries ----
+  // =======================================================
+  // 03. IMAGE PROCESSING QUERIES
+  // =======================================================
+
   const compositeQuery = useComposite(
     {
       sector_id: id ?? "",
@@ -95,8 +178,13 @@ export function SectorPage() {
 
   const imageUrl = useMemo(() => {
     if (!activeQuery.data) return null;
+
     return resolveApiUrl(activeQuery.data.url);
   }, [activeQuery.data]);
+
+  // =======================================================
+  // 04. KNOWN OBJECTS AND MARKERS
+  // =======================================================
 
   const knownQuery = useKnownObjects(
     {
@@ -110,40 +198,81 @@ export function SectorPage() {
     Boolean(hotspot) && overlayEnabled,
   );
 
+  const markers = useMemo<KnownObject[]>(() => {
+    if (!knownQuery.data) return [];
+
+    return knownQuery.data.objects.filter(
+      (object) =>
+        object.in_frame === true &&
+        object.pixel_x != null &&
+        object.pixel_y != null,
+    );
+  }, [knownQuery.data]);
+
+  // =======================================================
+  // 05. AVAILABLE DETECTORS AND NAVIGATION
+  // =======================================================
+
   const currentEpochForDetectors = view === "composite" ? epoch : epochFrom;
 
   const { data: availableDetectorsData, isLoading: isLoadingDetectors } =
     useAvailableDetectors(id ?? "", currentEpochForDetectors);
 
-  // seleccionador de detectores
   const availableDetectors = availableDetectorsData?.detectors;
+
+  const detectorSequence = useMemo(() => {
+    if (!availableDetectors?.length) {
+      return [...DETECTOR_SEQUENCE];
+    }
+
+    return DETECTOR_SEQUENCE.filter((detectorNumber) =>
+      availableDetectors.includes(detectorNumber),
+    );
+  }, [availableDetectors]);
 
   useEffect(() => {
     if (
-      availableDetectors &&
-      availableDetectors.length > 0 &&
-      !availableDetectors.includes(detector)
+      detectorSequence.length > 0 &&
+      !detectorSequence.includes(detector as (typeof DETECTOR_SEQUENCE)[number])
     ) {
-      set({ detector: availableDetectors[0] });
+      set({ detector: detectorSequence[0] });
     }
-  }, [availableDetectors, detector, set]);
+  }, [detectorSequence, detector, set]);
 
-  // svg de marcadores
-  const markers = useMemo<KnownObject[]>(() => {
-    if (!knownQuery.data) return [];
-    return knownQuery.data.objects.filter(
-      (o) => o.in_frame === true && o.pixel_x != null && o.pixel_y != null,
-    );
-  }, [knownQuery.data]);
+  const changeDetector = useCallback(
+    (direction: -1 | 1) => {
+      if (detectorSequence.length === 0 || isLoadingDetectors) return;
 
-  // ---- Reset popover al cambiar de contexto ----
+      const currentIndex = detectorSequence.indexOf(
+        detector as (typeof DETECTOR_SEQUENCE)[number],
+      );
+
+      const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+
+      const nextIndex =
+        (safeIndex + direction + detectorSequence.length) %
+        detectorSequence.length;
+
+      set({ detector: detectorSequence[nextIndex] });
+    },
+    [detector, detectorSequence, isLoadingDetectors, set],
+  );
+
+  // =======================================================
+  // 06. CONTEXT RESET
+  // =======================================================
+
   useEffect(() => {
     setVisualizerInput(null);
   }, [view, detector, epoch, epochFrom, epochTo]);
 
-  // ---- Handlers ----
+  // =======================================================
+  // 07. IMAGE INTERACTION HANDLERS
+  // =======================================================
+
   const handleImageClick = (pixelX: number, pixelY: number) => {
     if (!hotspot) return;
+
     setVisualizerInput({
       sectorId: hotspot.id,
       epoch: view === "composite" ? epoch : epochFrom,
@@ -153,32 +282,51 @@ export function SectorPage() {
     });
   };
 
-  const handleMarkerClick = (obj: KnownObject) => {
-    if (!hotspot || obj.pixel_x == null || obj.pixel_y == null) return;
+  const handleMarkerClick = (object: KnownObject) => {
+    if (!hotspot || object.pixel_x == null || object.pixel_y == null) {
+      return;
+    }
+
     setVisualizerInput({
       sectorId: hotspot.id,
       epoch: view === "composite" ? epoch : epochFrom,
       detector,
-      pixelX: obj.pixel_x,
-      pixelY: obj.pixel_y,
+      pixelX: object.pixel_x,
+      pixelY: object.pixel_y,
     });
   };
 
-  // ---- Commits de sliders (cada uno actualiza su URL param) ----
-  const commitStretch = useCallback((v: number) => set({ stretch: v }), [set]);
-  const commitThreshold = useCallback(
-    (v: number) => set({ threshold: v }),
-    [set],
-  );
-  const commitMaxVmag = useCallback((v: number) => set({ max_vmag: v }), [set]);
-  const commitMode = useCallback(
-    (m: "per_row" | "global") => set({ mode: m }),
+  // =======================================================
+  // 08. CONTROL COMMIT HANDLERS
+  // =======================================================
+
+  const commitStretch = useCallback(
+    (value: number) => set({ stretch: value }),
     [set],
   );
 
-  // ---- Reset ----
+  const commitThreshold = useCallback(
+    (value: number) => set({ threshold: value }),
+    [set],
+  );
+
+  const commitMaxVmag = useCallback(
+    (value: number) => set({ max_vmag: value }),
+    [set],
+  );
+
+  const commitMode = useCallback(
+    (value: "per_row" | "global") => set({ mode: value }),
+    [set],
+  );
+
+  // =======================================================
+  // 09. RESTORE DEFAULT SETTINGS
+  // =======================================================
+
   const handleReset = () => {
     if (!hotspot) return;
+
     set({
       view: DEFAULTS.view,
       detector: DEFAULTS.detector,
@@ -192,49 +340,80 @@ export function SectorPage() {
       overlay: "0",
       identify: "0",
     });
+
+    setEpochTarget("to");
   };
 
-  // ---- Mensajes ----
+  // =======================================================
+  // 10. LOADING MESSAGES
+  // =======================================================
+
   const loadingMessage =
     view === "composite"
-      ? "Procesando imagen espectral…"
-      : "Comparando épocas T₁ vs T₂…";
+      ? "Processing spectral image..."
+      : "Comparing observation epochs T₁ vs T₂...";
+
   const loadingHint =
     view === "composite"
-      ? "Puede tardar ~15 s la primera vez"
-      : "Alineando y restando épocas (~20 s la primera vez)";
+      ? "Initial processing may take approximately 15 seconds."
+      : "Aligning and subtracting observation epochs...";
 
-  // ---- Loading / error de hotspot ----
+  // =======================================================
+  // 11. LOADING STATE
+  // =======================================================
+
   if (hotspotQuery.isLoading) {
     return (
-      <div className="mx-auto max-w-[1600px] px-6 py-6">
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          <Skeleton className="aspect-square w-full rounded-xl" />
-          <div className="space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-          </div>
+      <main className="sector-page">
+        <div className="sector-layout sector-layout--loading">
+          <section className="sector-viewer sector-viewer--loading">
+            <div className="sector-detector-toolbar">
+              <span />
+              <span className="sector-detector-title">SELECTING DETECTOR</span>
+              <span />
+            </div>
+
+            <Skeleton className="sector-loading-image" />
+          </section>
+
+          <aside className="sector-sidebar sector-sidebar--loading">
+            <Skeleton className="h-10 w-full rounded-none" />
+            <Skeleton className="h-24 w-full rounded-none" />
+            <Skeleton className="h-24 w-full rounded-none" />
+            <Skeleton className="h-24 w-full rounded-none" />
+          </aside>
         </div>
-      </div>
+      </main>
     );
   }
+
+  // =======================================================
+  // 12. ERROR STATE
+  // =======================================================
 
   if (hotspotQuery.isError || !hotspot) {
     return (
-      <div className="mx-auto max-w-xl px-6 py-24 text-center">
-        <AlertTriangle className="mx-auto h-12 w-12 text-danger" />
-        <h1 className="mt-4 font-display text-2xl font-bold">
-          Sector no encontrado
-        </h1>
-        <p className="mt-2 text-text-secondary">
-          {hotspotQuery.error instanceof Error
-            ? hotspotQuery.error.message
-            : "No se pudo cargar el sector."}
-        </p>
-      </div>
+      <main className="sector-page">
+        <div className="sector-error">
+          <AlertTriangle className="h-10 w-10" />
+
+          <span className="sector-section-label">DATA RETRIEVAL ERROR</span>
+
+          <h1>Sector not found</h1>
+
+          <p>
+            {hotspotQuery.error instanceof Error
+              ? hotspotQuery.error.message
+              : "The requested astronomical sector could not be loaded."}
+          </p>
+        </div>
+      </main>
     );
   }
+
+  // =======================================================
+  // 13. ASTRONOMICAL OVERLAY
+  // =======================================================
 
   const overlaySvg =
     overlayEnabled && markers.length > 0 ? (
@@ -243,257 +422,110 @@ export function SectorPage() {
         className="pointer-events-none absolute inset-0 z-20 h-full w-full"
         preserveAspectRatio="xMidYMid meet"
       >
-        {markers.map((obj) => (
+        {markers.map((object) => (
           <AsteroidMarker
-            key={obj.name}
-            object={obj}
+            key={object.name}
+            object={object}
             onClick={handleMarkerClick}
           />
         ))}
       </svg>
     ) : null;
 
+  // =======================================================
+  // 14. MAIN PAGE
+  // =======================================================
+
   return (
-    <div className="mx-auto max-w-[1600px] px-6 py-6">
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        {/* ───── Viewer ───── */}
-        <div className="relative">
-          {imageUrl ? (
-            <ImageViewer
-              src={imageUrl}
-              alt={hotspot.name}
-              overlay={overlaySvg}
-              enableClick={identifyMode}
-              onImageClick={handleImageClick}
-            />
-          ) : (
-            <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-border bg-black">
-              <LoadingOverlay
-                active={activeQuery.isLoading}
-                message={loadingMessage}
-                hint={loadingHint}
-              />
-              {activeQuery.isError && (
-                <ErrorOverlay
-                  message={
-                    activeQuery.error instanceof Error
-                      ? activeQuery.error.message
-                      : "Error desconocido"
-                  }
-                  onRetry={() => activeQuery.refetch()}
-                />
-              )}
-            </div>
-          )}
+    <main className="sector-page">
+      <div className="sector-layout">
+        {/* =================================================
+    SECTION 01 — IMAGE VIEWER
+    ================================================= */}
 
-          {activeQuery.isFetching && activeQuery.data && (
-            <div className="pointer-events-none absolute top-3 right-3 z-30 rounded-md border border-accent-cyan/40 bg-surface/90 px-2.5 py-1 font-mono text-xs backdrop-blur">
-              <span className="text-accent-cyan">↻ actualizando</span>
-            </div>
-          )}
+        <SectorViewer
+          detector={detector}
+          isLoadingDetectors={isLoadingDetectors}
+          detectorCount={detectorSequence.length}
+          onDetectorNavigate={changeDetector}
+          imageUrl={imageUrl}
+          imageAlt={hotspot.name}
+          overlay={overlaySvg}
+          identifyMode={identifyMode}
+          onImageClick={handleImageClick}
+          isImageLoading={activeQuery.isLoading}
+          isImageError={activeQuery.isError}
+          imageErrorMessage={
+            activeQuery.error instanceof Error
+              ? activeQuery.error.message
+              : "Unknown processing error"
+          }
+          onRetry={() => activeQuery.refetch()}
+          isImageFetching={activeQuery.isFetching}
+          hasImageData={Boolean(activeQuery.data)}
+          loadingMessage={loadingMessage}
+          loadingHint={loadingHint}
+          epochs={epochs}
+          view={view}
+          selectedEpoch={selectedTimelineEpoch}
+          epochFrom={epochFrom}
+          epochTo={epochTo}
+          epochTarget={epochTarget}
+          onTargetChange={setEpochTarget}
+          onSelectEpoch={selectTimelineEpoch}
+          onNavigateEpoch={changeEpoch}
+        />
 
-          {activeQuery.isFetching && !activeQuery.data && (
-            <LoadingOverlay
-              active
-              message={loadingMessage}
-              hint={loadingHint}
-            />
-          )}
+        {/* =================================================
+            SECTION 02 — CONFIGURATION SIDEBAR
+            ================================================= */}
 
-          {identifyMode && (
-            <div className="pointer-events-none absolute bottom-3 left-3 z-30 flex items-center gap-2 rounded-md border border-accent-green/40 bg-surface/90 px-2.5 py-1 font-mono text-xs backdrop-blur">
-              <Crosshair className="h-3 w-3 text-accent-green" />
-              <span className="text-accent-green">
-                Haz click para identificar
-              </span>
-            </div>
-          )}
-        </div>
+        {/* =================================================
+    SECTION 02 — CONFIGURATION SIDEBAR
+    ================================================= */}
 
-        {/* ───── Sidebar ───── */}
-        <aside className="space-y-5">
-          {/* Header + reset */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="font-display text-2xl font-bold leading-tight">
-                {hotspot.name}
-              </h1>
-              <p className="mt-1.5 text-sm text-text-secondary">
-                {hotspot.description}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-text-secondary">
-                <span>RA {formatRA(hotspot.ra)}</span>
-                <span>Dec {formatDec(hotspot.dec)}</span>
-              </div>
-            </div>
-            <button
-              onClick={handleReset}
-              className="shrink-0 rounded-md border border-border bg-surface p-1.5 text-text-secondary transition-colors hover:border-accent-amber/40 hover:text-accent-amber"
-              title="Restaurar valores por defecto"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
-          </div>
-
-          <ViewToggle value={view} onChange={(v) => set({ view: v })} />
-
-          <DetectorSelector
-            value={detector}
-            onChange={(d) => set({ detector: d })}
-            availableDetectors={availableDetectors}
-            isLoading={isLoadingDetectors}
-          />
-
-          <DetectorAnimation
-            current={detector}
-            onDetectorChange={(d) => set({ detector: d })}
-            disabled={hotspot.epochs.length === 0}
-          />
-
-          {view === "composite" ? (
-            <>
-              <SingleEpochSelector
-                epochs={hotspot.epochs}
-                value={epoch}
-                onChange={(ep) => set({ epoch: ep })}
-              />
-
-              {/* Stretch slider */}
-              <SliderControl
-                label="Stretch (arcsinh)"
-                value={stretch}
-                min={1}
-                max={100}
-                step={2}
-                formatValue={(v) => v.toFixed(1)}
-                onCommit={commitStretch}
-                description="Más alto = resalta estructuras débiles"
-              />
-
-              <Link to={`/sector/${hotspot.id}/advanced`} className="block">
-                <div className="flex w-full items-center gap-3 rounded-md border border-accent-purple/40 bg-accent-purple/10 px-3 py-2.5 text-sm text-accent-purple transition-colors hover:bg-accent-purple/20">
-                  <Sparkles className="h-4 w-4 shrink-0" />
-                  <div className="min-w-0 flex-1 text-left">
-                    <p className="font-medium">Análisis avanzado</p>
-                    <p className="font-mono text-[10px] text-accent-purple/70">
-                      Espectro de 2 bandas
-                    </p>
-                  </div>
-                </div>
-              </Link>
-
-              {/* Mode toggle */}
-              <div>
-                <label className="mb-2 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-text-secondary">
-                  <span>Normalización</span>
-                </label>
-                <div className="grid grid-cols-2 gap-1 rounded-md border border-border bg-surface p-1">
-                  {(["global", "per_row"] as const).map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => commitMode(m)}
-                      className={cn(
-                        "rounded px-2 py-1.5 font-mono text-xs transition-colors",
-                        mode === m
-                          ? "bg-accent-cyan/15 text-accent-cyan"
-                          : "text-text-secondary hover:text-text-primary",
-                      )}
-                    >
-                      {m === "per_row" ? "Por fila" : "Global"}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-1.5 font-mono text-xs text-text-secondary/60">
-                  Por fila aplana el gradiente espectral.
-                </p>
-              </div>
-            </>
-          ) : (
-            <>
-              <DualEpochSelector
-                epochs={hotspot.epochs}
-                from={epochFrom}
-                to={epochTo}
-                onChange={(f, t) => set({ epoch_from: f, epoch_to: t })}
-              />
-
-              {epochFrom === epochTo && (
-                <p className="rounded-md border border-accent-amber/30 bg-accent-amber/5 p-2.5 font-mono text-xs text-accent-amber">
-                  Selecciona dos épocas distintas.
-                </p>
-              )}
-
-              {/* Threshold slider */}
-              <SliderControl
-                label="Umbral (percentil)"
-                value={threshold}
-                min={90}
-                max={99.9}
-                step={0.1}
-                formatValue={(v) => `${v.toFixed(1)}`}
-                onCommit={commitThreshold}
-                description="Bajo = más candidatos; alto = solo lo extremo"
-              />
-            </>
-          )}
-
-          <OverlayToggle
-            enabled={overlayEnabled}
-            count={markers.length}
-            isLoading={knownQuery.isLoading}
-            onChange={(v) => set({ overlay: v ? "1" : "0" })}
-          />
-
-          {/* Max Vmag slider (solo si overlay activo) */}
-          {overlayEnabled && (
-            <SliderControl
-              label="Magnitud límite (V)"
-              value={maxVmag}
-              min={10}
-              max={24}
-              step={2}
-              unit=" mag"
-              onCommit={commitMaxVmag}
-              description="SPHEREx detecta hasta V ≈ 20"
-            />
-          )}
-
-          {/* Identify toggle */}
-          <div>
-            <label className="mb-2 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-text-secondary">
-              <span>Modo identificar</span>
-            </label>
-            <button
-              onClick={() => set({ identify: identifyMode ? "0" : "1" })}
-              className={cn(
-                "flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm transition-all",
-                identifyMode
-                  ? "border-accent-green/50 bg-accent-green/10 text-accent-green"
-                  : "border-border bg-surface text-text-secondary hover:border-accent-green/30 hover:text-text-primary",
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <Crosshair className="h-4 w-4" />
-                {identifyMode
-                  ? "Click para identificar"
-                  : "Activar identificación"}
-              </span>
-            </button>
-          </div>
-
-          {knownQuery.isError && overlayEnabled && (
-            <p className="rounded-md border border-danger/30 bg-danger/5 p-2.5 font-mono text-xs text-danger">
-              Error cargando asteroides: {knownQuery.error.message}
-            </p>
-          )}
-        </aside>
+        <SectorSidebar
+          sectorId={hotspot.id}
+          sectorName={hotspot.name}
+          sectorDescription={hotspot.description}
+          rightAscension={formatRA(hotspot.ra)}
+          declination={formatDec(hotspot.dec)}
+          view={view}
+          onViewChange={(value) => set({ view: value })}
+          onReset={handleReset}
+          stretch={stretch}
+          onStretchCommit={commitStretch}
+          mode={mode}
+          onModeCommit={commitMode}
+          threshold={threshold}
+          onThresholdCommit={commitThreshold}
+          epochFrom={epochFrom}
+          epochTo={epochTo}
+          overlayEnabled={overlayEnabled}
+          overlayCount={markers.length}
+          isLoadingObjects={knownQuery.isLoading}
+          onOverlayChange={(value) => set({ overlay: value ? "1" : "0" })}
+          maxVmag={maxVmag}
+          onMaxVmagCommit={commitMaxVmag}
+          identifyMode={identifyMode}
+          onIdentifyToggle={() => set({ identify: identifyMode ? "0" : "1" })}
+          objectErrorMessage={
+            knownQuery.isError
+              ? knownQuery.error instanceof Error
+                ? knownQuery.error.message
+                : "Unknown object retrieval error"
+              : null
+          }
+        />
       </div>
+
+      {/* SPECTRAL VISUALIZER MODAL */}
 
       <ObjectVisualizerModal
         open={visualizerInput !== null}
         onClose={() => setVisualizerInput(null)}
         input={visualizerInput}
       />
-    </div>
+    </main>
   );
 }

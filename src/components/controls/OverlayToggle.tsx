@@ -12,7 +12,7 @@ export function OverlayToggle({ enabled, count, isLoading, onChange }: OverlayTo
   return (
     <div>
       <label className="mb-2 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-text-secondary">
-        <span>Asteroides conocidos</span>
+        <span>Known Asteroids</span>
         {isLoading ? (
           <Loader2 className="h-3 w-3 animate-spin" />
         ) : (
@@ -36,7 +36,7 @@ export function OverlayToggle({ enabled, count, isLoading, onChange }: OverlayTo
       </button>
       {enabled && count === 0 && !isLoading && (
         <p className="mt-1.5 font-mono text-xs text-text-secondary/60">
-          No hay asteroides conocidos en este campo.
+          There are no known asteroids in this field.
         </p>
       )}
     </div>
