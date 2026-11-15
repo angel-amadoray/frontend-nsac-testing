@@ -18,7 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b border-white/15 bg-[#03021d] px-6 py-5 text-white sm:px-10">
+      <header className="border-b border-white/15 bg-[#21212c] px-6 py-5 text-white sm:px-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-5">
           <Link
             to="/"
@@ -52,44 +52,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               </li>
 
               <li>
-                <Link
-                  to="/sector/orion_nebula"
-                  className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                >
-                  <Telescope className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Orion Nebula (M42)
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/sector/galactic_center"
-                  className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                >
-                  <Orbit className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Galactic Center
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/sector/rho_ophiuchi"
-                  className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                >
-                  <Cloud className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Rho Ophiuchi Complex
-                </Link>
-              </li>
-
-              <li>
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/"
+                  href="https://www.spaceappschallenge.org/2026/find-a-team/tlon-9/"
                   className="underline decoration-white/40 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
                   <ExternalLink className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Space Apps Challenge
+                  Team Challenge — Tlön 9
                 </a>
               </li>
             </ul>
@@ -144,7 +114,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <nav
             id="mobile-navigation"
             aria-label="Navegación principal móvil"
-            className={`absolute right-0 top-0 flex h-full w-[min(84vw,22rem)] flex-col border-l border-white/15 bg-[#03021d] px-7 py-8 shadow-2xl transition-transform duration-300 ease-out ${
+            className={`absolute right-0 top-0 flex h-full w-[min(84vw,22rem)] flex-col border-l border-white/15 bg-[#21212c] px-7 py-8 shadow-2xl transition-transform duration-300 ease-out ${
               isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
             }`}
           >
@@ -210,12 +180,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/"
+                  href="https://www.spaceappschallenge.org/2026/find-a-team/tlon-9/"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="underline decoration-white/40 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
                   <ExternalLink className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
-                  Space Apps Challenge
+                  Team Challenge — Tlön 9
                 </a>
               </li>
             </ul>
@@ -224,7 +194,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t border-white/15 bg-[#03021d] px-6 py-10 text-white sm:px-10">
+      <footer className="border-t border-white/15 bg-[#21212c] px-6 py-10 text-white sm:px-10">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap');
         `}</style>
