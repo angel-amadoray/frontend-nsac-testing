@@ -281,16 +281,32 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
   color: var(--sector-white);
   text-decoration: none;
-  border-top: 1px solid var(--sector-border);
-  border-bottom: 1px solid var(--sector-border);
-  transition: background 180ms ease;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--sector-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
 .sector-advanced-link:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+
+.sector-advanced-link:focus-visible {
+  outline: 2px solid var(--sector-white);
+  outline-offset: 3px;
 }
 
 .sector-advanced-link p {
