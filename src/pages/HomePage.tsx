@@ -6,8 +6,8 @@ import { Link } from 'react-router-dom'
 const sectors = [
   {
     id: 'orion_nebula',
-    name: 'Nebulosa de Orión (M42)',
-    description: 'Región de formación estelar masiva.',
+    name: 'Orion Nebula (M42)',
+    description: 'Massive star-forming region.',
     ra: '05:37:43.2',
     dec: '−06° 54′ 36″',
     epochs: ['2025-09', '2025-09b'],
@@ -15,8 +15,8 @@ const sectors = [
   },
   {
     id: 'galactic_center',
-    name: 'Centro Galáctico',
-    description: 'Región más densa de la Vía Láctea en Sagitario.',
+    name: 'Galactic Center',
+    description: 'The densest region of the Milky Way, located in Sagittarius.',
     ra: '17:42:28.2',
     dec: '−29° 09′ 04″',
     epochs: ['2025-09', '2026-03'],
@@ -24,9 +24,9 @@ const sectors = [
   },
   {
     id: 'rho_ophiuchi',
-    name: 'Complejo Rho Ophiuchi',
+    name: 'Rho Ophiuchi Cloud Complex',
     description:
-      'Región de formación estelar cercana (140 pc) con nubes moleculares y abundantes fuentes infrarrojas.',
+      'A nearby star-forming region (140 pc) containing molecular clouds and abundant infrared sources.',
     ra: '16:28:04.8',
     dec: '−24° 32′ 24″',
     epochs: [],
@@ -43,41 +43,40 @@ export function HomePage() {
 
         <section className="home-copy" aria-labelledby="home-title">
           <span className="home-eyebrow">
-            NASA SPHEREx · Misión en órbita
+            NASA SPHEREx · ORBITAL MISSION
           </span>
 
           <h1 id="home-title">
-            EXPLORA EL CIELO A TRAVÉS DE SPHEREx
+            EXPLORE THE UNIVERSE WITH SPHEREx
           </h1>
 
           <div className="home-description">
             <p>
-              Navega por las imágenes tomadas por medio del satélite de la
-              misión de NASA Spherex. La misión SPHEREx de la NASA ha estado
-              cartografiando todo el cielo cada seis meses en 102 bandas de
-              luz infrarroja cercana, obteniendo imágenes de más de mil
-              millones de objetos.
+              Explore images captured by NASA's SPHEREx space telescope.
+              The SPHEREx mission has been mapping the entire sky every
+              six months across 102 near-infrared wavelength bands,
+              collecting images of more than one billion objects.
             </p>
 
             <p>
-              Cometas, asteroides, estrellas, enanas marrones e incluso
-              nuevos planetas se revelan al cambiar de posición entre
-              imágenes. El satélite responsable de obtener estas imágenes
-              pasa por un mismo sitio cada seis meses, donde puedes medir y
-              comparar el cambio de todos los astros capturados en dichas
-              imágenes. ¡Diviértete explorando!
+              Comets, asteroids, stars, brown dwarfs, and even new
+              planets can be revealed by comparing their positions
+              across different images. The satellite revisits the same
+              region of the sky every six months, allowing you to
+              measure and compare changes in the celestial objects
+              captured in these images. Enjoy exploring!
             </p>
           </div>
         </section>
 
         <section
-          id="sectores"
+          id="sectors"
           className="stack-carousel"
-          aria-label="Sectores astronómicos"
+          aria-label="Astronomical sectors"
         >
           <div className="stack-carousel__heading">
             <span />
-            ELIGE UN SECTOR
+            SELECT A SECTOR
             <span />
           </div>
 
@@ -128,7 +127,7 @@ export function HomePage() {
                       <div className="stack-card__footer">
                         <span>
                           <CalendarDays />
-                          {sector.epochs.length} épocas
+                          {sector.epochs.length} observation epochs
                           {sector.epochs.length > 0
                             ? ` · ${sector.epochs.join(' · ')}`
                             : ''}
@@ -150,7 +149,7 @@ export function HomePage() {
                   key={sector.id}
                   to={`/sector/${sector.id}`}
                   className={className}
-                  aria-label={`Explorar ${sector.name}`}
+                  aria-label={`Explore ${sector.name}`}
                 >
                   {cardContent}
                 </Link>
@@ -160,8 +159,8 @@ export function HomePage() {
                   type="button"
                   className={className}
                   onClick={() => setActiveIndex(index)}
-                  aria-label={`Seleccionar ${sector.name}`}
-                  title={`Mostrar ${sector.name}`}
+                  aria-label={`Select ${sector.name}`}
+                  title={`Show ${sector.name}`}
                 >
                   {cardContent}
                 </button>
