@@ -1,5 +1,12 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import {
+  BookOpen,
+  Cloud,
+  ExternalLink,
+  Orbit,
+  Telescope,
+} from "lucide-react";
 import logo from "../../assets/Logo.png";
 
 import { useState } from "react";
@@ -39,6 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onClick={() => setIsGlossaryOpen(true)}
                   className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <BookOpen className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Glossary of Terms
                 </button>
               </li>
@@ -48,6 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to="/sector/orion_nebula"
                   className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <Telescope className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Orion Nebula (M42)
                 </Link>
               </li>
@@ -57,6 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to="/sector/galactic_center"
                   className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <Orbit className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Galactic Center
                 </Link>
               </li>
@@ -66,6 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to="/sector/rho_ophiuchi"
                   className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <Cloud className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Rho Ophiuchi Complex
                 </Link>
               </li>
@@ -77,6 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   href="https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/"
                   className="underline decoration-white/40 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <ExternalLink className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Space Apps Challenge
                 </a>
               </li>
@@ -160,6 +172,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   }}
                   className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <BookOpen className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Glossary of Terms
                 </button>
               </li>
@@ -169,6 +182,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <Telescope className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Orion Nebula (M42)
                 </Link>
               </li>
@@ -178,6 +192,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <Orbit className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Galactic Center
                 </Link>
               </li>
@@ -187,6 +202,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <Cloud className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Rho Ophiuchi Complex
                 </Link>
               </li>
@@ -198,6 +214,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="underline decoration-white/40 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <ExternalLink className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Space Apps Challenge
                 </a>
               </li>
@@ -212,7 +229,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap');
         `}</style>
 
-        <div className="mx-auto flex max-w-7xl flex-col gap-10 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between md:gap-10">
           <a
             href="/"
             aria-label="Ir a la página principal"
@@ -232,14 +249,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
           </a>
 
-          <nav aria-label="Enlaces del pie de página">
-            <ul className="flex flex-wrap gap-x-7 gap-y-4 text-sm text-white/80">
+          <nav aria-label="Enlaces del pie de página" className="w-full md:w-auto">
+            <ul className="flex flex-col gap-4 text-sm text-white/80 sm:flex-row sm:flex-wrap sm:gap-x-7">
               <li>
                 <button
                   type="button"
                   onClick={() => setIsGlossaryOpen(true)}
                   className="text-white/80 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <BookOpen className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Glossary of Terms
                 </button>
               </li>
@@ -249,6 +267,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to="/sector/orion_nebula"
                   className="text-white/80 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <Telescope className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Orion Nebula (M42)
                 </Link>
               </li>
@@ -258,6 +277,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to="/sector/galactic_center"
                   className="text-white/80 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <Orbit className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Galactic Center
                 </Link>
               </li>
@@ -267,6 +287,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to="/sector/rho_ophiuchi"
                   className="text-white/80 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <Cloud className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Rho Ophiuchi Complex
                 </Link>
               </li>
@@ -278,11 +299,16 @@ export function AppShell({ children }: { children: ReactNode }) {
                   href="https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/"
                   className="underline decoration-white/40 underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                 >
+                  <ExternalLink className="mr-2 inline-block h-4 w-4 align-[-0.15em]" />
                   Space Apps Challenge
                 </a>
               </li>
             </ul>
           </nav>
+        </div>
+
+        <div className="mx-auto mt-8 max-w-7xl border-t border-white/10 pt-5 text-center text-xs text-white/45">
+          © {new Date().getFullYear()} SPHEREx Explorer. All rights reserved.
         </div>
       </footer>
       <GlossaryModal
