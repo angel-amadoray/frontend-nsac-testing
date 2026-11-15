@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Header } from './Header'
 import logo from '../../assets/Logo.png';
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const isHome = useLocation().pathname === '/'
+
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      {!isHome && <Header />}
       <main className="flex-1">{children}</main>
 
       <footer className="border-t border-white/15 bg-[#03021d] px-6 py-10 text-white sm:px-10">
