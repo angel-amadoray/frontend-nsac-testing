@@ -23,25 +23,25 @@ export function PairSpectrumCard({ short, long }: PairSpectrumCardProps) {
     <div className="rounded-xl border border-border bg-surface p-5">
       <div className="mb-4">
         <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-text-secondary">
-          ¿Cómo brilla este objeto?
+          How does this object shine?
         </h3>
         <p className="mt-1 text-xs text-text-secondary/70">
-          Comparamos su brillo en dos longitudes de onda distintas.
+          We compare its brightness at two different wavelengths.
         </p>
       </div>
 
       <div className="space-y-4">
         <BandRow
-          label="Banda 1 · Luz azul cercana"
-          sublabel={`λ ≈ ${short.wavelength_center_um.toFixed(2)} μm · casi visible al ojo`}
+          label="Band 1 · Near-blue light"
+          sublabel={`λ ≈ ${short.wavelength_center_um.toFixed(2)} μm · nearly visible to the eye`}
           value={fShort}
           percent={pctShort}
           color="hsl(190 100% 60%)"
           icon="💙"
         />
         <BandRow
-          label="Banda 4 · Infrarrojo medio"
-          sublabel={`λ ≈ ${long.wavelength_center_um.toFixed(2)} μm · emisión de calor`}
+          label="Band 4 · Mid-infrared"
+          sublabel={`λ ≈ ${long.wavelength_center_um.toFixed(2)} μm · heat emission`}
           value={fLong}
           percent={pctLong}
           color="hsl(38 92% 55%)"
@@ -53,26 +53,26 @@ export function PairSpectrumCard({ short, long }: PairSpectrumCardProps) {
         <p className="text-sm text-text-primary">
           {brighterInShort ? (
             <>
-              Es{' '}
+              It is{' '}
               <span className="font-semibold text-accent-cyan">
                 {factor.toFixed(1)}×
               </span>{' '}
-              más brillante en la banda azul que en el infrarrojo.
+              brighter in the blue band than in infrared.
             </>
           ) : (
             <>
-              Es{' '}
+              It is{' '}
               <span className="font-semibold text-accent-amber">
                 {factor.toFixed(1)}×
               </span>{' '}
-              más brillante en el infrarrojo que en la banda azul.
+              brighter in infrared than in the blue band.
             </>
           )}
         </p>
         <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
           {brighterInShort
-            ? '💡 Las estrellas calientes emiten más luz azul que infrarroja.'
-            : '💡 Los objetos fríos (polvo, enanas marrones, planetas gigantes) emiten más infrarrojo.'}
+            ? '💡 Hot stars emit more blue light than infrared.'
+            : '💡 Cold objects (dust, brown dwarfs, giant planets) emit more infrared.'}
         </p>
       </div>
     </div>

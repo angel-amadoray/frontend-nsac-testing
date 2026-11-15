@@ -10,35 +10,35 @@ interface BrightPixelsListProps {
 
 const LEVELS = {
   very_hot: {
-    label: 'Muy azul',
+    label: 'Very blue',
     Icon: Flame,
     color: 'text-sky-400',
     bg: 'bg-sky-500/10',
     border: 'border-sky-500/30',
   },
   hot: {
-    label: 'Azulado',
+    label: 'Bluish',
     Icon: Sun,
     color: 'text-cyan-400',
     bg: 'bg-cyan-500/10',
     border: 'border-cyan-500/30',
   },
   neutral: {
-    label: 'Neutro',
+    label: 'Neutral',
     Icon: HelpCircle,
     color: 'text-text-secondary',
     bg: 'bg-surface/40',
     border: 'border-border',
   },
   cool: {
-    label: 'Rojizo',
+    label: 'Reddish',
     Icon: Sun,
     color: 'text-orange-400',
     bg: 'bg-orange-500/10',
     border: 'border-orange-500/30',
   },
   very_cool: {
-    label: 'Muy rojo',
+    label: 'Very red',
     Icon: Snowflake,
     color: 'text-red-400',
     bg: 'bg-red-500/10',
@@ -67,9 +67,9 @@ export function BrightPixelsList({
         <thead className="sticky top-0 z-10 bg-surface-elevated">
           <tr className="text-left font-mono text-[10px] uppercase tracking-wider text-text-secondary">
             <th className="px-2 py-2">#</th>
-            <th className="px-2 py-2">Aspecto</th>
-            <th className="px-2 py-2 text-right">Brillo</th>
-            <th className="px-2 py-2 text-right">Contraste</th>
+            <th className="px-2 py-2">Appearance</th>
+            <th className="px-2 py-2 text-right">Brightness</th>
+            <th className="px-2 py-2 text-right">Contrast</th>
           </tr>
         </thead>
         <tbody>

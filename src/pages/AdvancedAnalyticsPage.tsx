@@ -21,7 +21,7 @@ import type {
 } from "@/lib/types";
 
 /**
- * Convierte un par (2 puntos) a un SpherexProfile compatible con el modal 3D.
+ * Converts a pair (2 points) to a SpherexProfile compatible with the 3D modal.
  */
 function pairToProfile(pair: PairSpectrumResponse): SpherexProfile {
   const cls = pair.classification.classification;
@@ -44,17 +44,17 @@ function pairToProfile(pair: PairSpectrumResponse): SpherexProfile {
     model = "unknown";
   }
 
-  // Color del material basado en la temperatura de color
+  // Material color based on color temperature
   let baseColor = "#c8c8c8";
   const T = pair.classification.color_temperature_k;
   if (T !== null) {
     if (T > 10000)
-      baseColor = "#a8c8ff"; // azul (O/B/A)
+      baseColor = "#a8c8ff"; // blue (O/B/A)
     else if (T > 5500)
-      baseColor = "#e0e8ff"; // blanco-azul (F/G)
+      baseColor = "#e0e8ff"; // blue-white (F/G)
     else if (T > 3500)
-      baseColor = "#ffd8b8"; // naranja (K/M)
-    else baseColor = "#e8a070"; // rojo (enanas M tardías)
+      baseColor = "#ffd8b8"; // orange (K/M)
+    else baseColor = "#e8a070"; // red (late M dwarfs)
   }
 
   return {
@@ -153,7 +153,7 @@ export function AdvancedAnalyticsPage() {
       <div className="mx-auto max-w-xl px-6 py-24 text-center">
         <AlertCircle className="mx-auto h-12 w-12 text-danger" />
         <h1 className="mt-4 font-display text-2xl font-bold">
-          Sector no encontrado
+          Sector not found
         </h1>
       </div>
     );
@@ -164,11 +164,11 @@ export function AdvancedAnalyticsPage() {
       <div className="mx-auto max-w-xl px-6 py-24 text-center">
         <AlertCircle className="mx-auto h-12 w-12 text-text-secondary" />
         <h1 className="mt-4 font-display text-2xl font-bold">
-          Sin épocas disponibles
+          No epochs available
         </h1>
         <Link to={`/sector/${id}`} className="mt-4 inline-block">
           <Button variant="outline" size="sm">
-            Volver al sector
+            Back to sector
           </Button>
         </Link>
       </div>
@@ -187,64 +187,58 @@ export function AdvancedAnalyticsPage() {
           </Link>
         </p>
         <h1 className="mt-1 font-display text-3xl font-bold">
-          Análisis avanzado
+          Advanced analytics
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-text-secondary">
-          Descubre qué tipo de objeto es, comparando cuánta luz emite en dos
-          colores del espectro. Haz clic en un objeto brillante de la lista para
-          analizarlo.
+          Discover what type of object it is by comparing how much light it
+          emits at two colors of the spectrum. Click on a bright object from the
+          list to analyze it.
         </p>
       </header>
 
       <details className="mb-5 rounded-lg border border-border bg-surface/40 p-4">
         <summary className="cursor-pointer font-mono text-xs uppercase tracking-wider text-text-secondary">
-          📖 ¿Cómo interpretar estos resultados?
+          📖 How to interpret these results?
         </summary>
         <div className="mt-3 space-y-2 text-sm text-text-secondary">
           <p>
-            Cada objeto se mide en{" "}
-            <strong className="text-text-primary">
-              dos longitudes de onda
-            </strong>
-            : una banda de luz azul cercana (~0.92 μm) y una banda de infrarrojo
-            medio (~3.12 μm).
+            Each object is measured at{" "}
+            <strong className="text-text-primary">two wavelengths</strong>: a
+            near-blue light band (~0.92 μm) and a mid-infrared band (~3.12 μm).
           </p>
           <p>
-            La diferencia de brillo entre ambas bandas nos dice aproximadamente
-            la{" "}
-            <strong className="text-text-primary">
-              temperatura del objeto
-            </strong>
-            .
+            The brightness difference between both bands tells us approximately
+            the{" "}
+            <strong className="text-text-primary">object's temperature</strong>.
           </p>
           <ul className="ml-4 list-disc space-y-1 text-xs">
             <li>
-              <strong className="text-sky-400">Estrellas calientes</strong> →
-              más brillantes en banda azul.
+              <strong className="text-sky-400">Hot stars</strong> → brighter in
+              the blue band.
             </li>
             <li>
-              <strong className="text-yellow-400">Estrellas como el Sol</strong>{" "}
-              → parecidas en ambas bandas.
+              <strong className="text-yellow-400">Sun-like stars</strong> →
+              similar in both bands.
             </li>
             <li>
-              <strong className="text-red-400">Objetos fríos</strong> (polvo,
-              enanas marrones) → más brillantes en infrarrojo.
+              <strong className="text-red-400">Cold objects</strong> (dust,
+              brown dwarfs) → brighter in infrared.
             </li>
           </ul>
           <p className="text-xs text-text-secondary/60">
-            Nota: con solo dos puntos, la temperatura es aproximada. Para
-            clasificación precisa se requieren más longitudes de onda.
+            Note: with only two points, the temperature is approximate. Precise
+            classification requires more wavelengths.
           </p>
         </div>
       </details>
 
       <div className="grid gap-5 lg:grid-cols-[400px_1fr]">
-        {/* ── Panel izquierdo: lista + preview ── */}
+        {/* ── Left panel: list + preview ── */}
         <aside className="space-y-4">
           <div className="rounded-xl border border-border bg-surface p-4">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                Objetos brillantes
+                Bright objects
               </h3>
               <List className="h-4 w-4 text-text-secondary/50" />
             </div>
@@ -259,12 +253,12 @@ export function AdvancedAnalyticsPage() {
               {brightestMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Buscando objetos brillantes…
+                  Searching for bright objects…
                 </>
               ) : (
                 <>
                   <Wand2 className="h-4 w-4" />
-                  Buscar objetos brillantes
+                  Find bright objects
                 </>
               )}
             </Button>
@@ -272,7 +266,7 @@ export function AdvancedAnalyticsPage() {
             {brightestMutation.data &&
               brightestMutation.data.pixels.length === 0 && (
                 <p className="mt-2 rounded-md border border-accent-amber/30 bg-accent-amber/5 p-2 font-mono text-xs text-accent-amber">
-                  Sin píxeles válidos. Prueba bajar min_snr en el backend.
+                  No valid pixels. Try lowering min_snr in the backend.
                 </p>
               )}
 
@@ -285,18 +279,18 @@ export function AdvancedAnalyticsPage() {
                     onSelect={handleSelectPixel}
                   />
                   <p className="mt-2 font-mono text-[10px] text-text-secondary/60">
-                    {brightestMutation.data.n_valid} válidos de{" "}
-                    {brightestMutation.data.n_candidates_scanned} escaneados
+                    {brightestMutation.data.n_valid} valid out of{" "}
+                    {brightestMutation.data.n_candidates_scanned} scanned
                   </p>
                 </div>
               )}
           </div>
 
-          {/* Preview del target */}
+          {/* Target preview */}
           {selectedPixel && (
             <div className="rounded-xl border border-border bg-surface p-4">
               <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-text-secondary">
-                Dónde está en el cielo
+                Where it is in the sky
               </h3>
               {compositeQuery.isLoading && (
                 <div
@@ -312,7 +306,7 @@ export function AdvancedAnalyticsPage() {
                   style={{ width: 340, height: 340 }}
                 >
                   <p className="font-mono text-xs text-danger">
-                    Error cargando composite
+                    Error loading composite
                   </p>
                 </div>
               )}
@@ -335,18 +329,17 @@ export function AdvancedAnalyticsPage() {
           )}
         </aside>
 
-        {/* ── Panel derecho: análisis + 3D ── */}
+        {/* ── Right panel: analysis + 3D ── */}
         <div className="space-y-4">
           {!pairResult && !pairMutation.isPending && (
             <div className="rounded-xl border border-border bg-surface p-12 text-center">
               <Sparkles className="mx-auto h-10 w-10 text-accent-cyan/50" />
               <h2 className="mt-4 font-display text-lg font-semibold">
-                Selecciona un píxel
+                Select a pixel
               </h2>
               <p className="mt-2 mx-auto max-w-md text-sm text-text-secondary">
-                Haz clic en "Cargar lista" para ver los píxeles brillantes con
-                cobertura en ambos detectores, o ingresa coordenadas manualmente
-                en la lista.
+                Click "Find bright objects" to see bright pixels with coverage
+                in both detectors, or enter coordinates manually in the list.
               </p>
             </div>
           )}
@@ -355,7 +348,7 @@ export function AdvancedAnalyticsPage() {
             <div className="rounded-xl border border-border bg-surface p-12 text-center">
               <Loader2 className="mx-auto h-8 w-8 animate-spin text-accent-cyan" />
               <p className="mt-4 font-mono text-sm text-text-secondary">
-                Analizando par de detectores…
+                Analyzing detector pair…
               </p>
             </div>
           )}
@@ -364,12 +357,12 @@ export function AdvancedAnalyticsPage() {
             <div className="rounded-xl border border-danger/30 bg-danger/5 p-6">
               <AlertCircle className="h-6 w-6 text-danger" />
               <p className="mt-2 font-display text-base font-semibold">
-                Error en el análisis
+                Analysis error
               </p>
               <p className="mt-1 font-mono text-xs text-text-secondary">
                 {pairMutation.error instanceof Error
                   ? pairMutation.error.message
-                  : "Error desconocido"}
+                  : "Unknown error"}
               </p>
             </div>
           )}
@@ -390,7 +383,7 @@ export function AdvancedAnalyticsPage() {
                 onClick={() => setShow3D(true)}
               >
                 <Box className="h-4 w-4" />
-                Ver en 3D
+                View in 3D
               </Button>
             </>
           )}
@@ -399,7 +392,7 @@ export function AdvancedAnalyticsPage() {
             <div className="rounded-xl border border-accent-amber/30 bg-accent-amber/5 p-6">
               <AlertCircle className="h-6 w-6 text-accent-amber" />
               <p className="mt-2 font-display text-base font-semibold">
-                Sin cobertura
+                No coverage
               </p>
               <p className="mt-1 text-sm text-text-secondary">
                 {pairResult.classification.reason}
@@ -409,7 +402,7 @@ export function AdvancedAnalyticsPage() {
         </div>
       </div>
 
-      {/* Modal 3D con override */}
+      {/* 3D modal with override */}
       <ObjectVisualizerModal
         open={show3D && profile3D !== null}
         onClose={() => setShow3D(false)}
